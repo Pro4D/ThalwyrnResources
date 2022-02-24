@@ -287,6 +287,7 @@ public class ResourceManager {
     @SuppressWarnings("ConstantConditions")
     public void validateConfig() {
         if(!config.isConfigurationSection(configPath)) return;
+        allResources.clear();
         for(String id : config.getConfigurationSection(configPath).getKeys(false)) {
             if(!ThalwyrnResourcesUtils.isInt(id)) return;
 

@@ -34,6 +34,7 @@ public class ResourceCommand implements CommandExecutor {
         if(args[0].equals("reload") && args.length == 1) {
             plugin.reloadCustomConfig();
             plugin.reloadLevelConfig();
+            resourceManager.validateConfig();
             sender.sendMessage(ThalwyrnResourcesUtils.formattedColors("&aReloaded configs"));
             return true;
         }
@@ -214,6 +215,7 @@ public class ResourceCommand implements CommandExecutor {
                         }
                     }
                 }
+                return true;
 
         }
         return false;

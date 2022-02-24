@@ -26,6 +26,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -63,6 +64,12 @@ public class ResourceListener implements org.bukkit.event.Listener {
                 List<Block> listOfBlock = resource.getInteractBlocks();
                 if (listOfBlock.contains(block)) {
 
+                    if(resource.getPlayerRespawnTime().containsKey(player.getUniqueId())) {
+                        player.sendBlockChange(block.getLocation(), block.getBlockData());
+                        event.setCancelled(true);
+                        return;
+                    }
+
                     PlayerData playerData = PlayerData.get(player.getUniqueId());
                     Profession profession = ThalwyrnResourcesUtils.convertToMMOCoreJob(resource.getJob().getJobName());
                     assert profession != null;
@@ -72,10 +79,6 @@ public class ResourceListener implements org.bukkit.event.Listener {
                         return;
                     }
 
-                    if(resource.getPlayerRespawnTime().containsKey(player.getUniqueId())) {
-                        event.setCancelled(true);
-                        return;
-                    }
 
                     if (!(interactedPlayers.contains(player.getUniqueId()))) {
                         interactedPlayers.add(player.getUniqueId());
@@ -85,16 +88,22 @@ public class ResourceListener implements org.bukkit.event.Listener {
 
                     ItemStack item;
                     if (event.getAction().equals(Action.LEFT_CLICK_BLOCK)) {
+
                         item = resource.getLeftClick();
+
                     } else {
+
                         item = resource.getRightClick();
+
                     }
                     if (item != null) {
+
                         if (player.getInventory().firstEmpty() == -1) {
                             player.getLocation().getWorld().dropItemNaturally(player.getLocation(), item);
                         } else {
                             player.getInventory().addItem(item);
                         }
+
                     }
 
                     if (resource.getXp() != 0) {
@@ -207,49 +216,108 @@ public class ResourceListener implements org.bukkit.event.Listener {
     private void joinEvent(PlayerJoinEvent event) {
         for(ThalwyrnResource resource : resourceManager.getAllResources()) {
             if(resource.getPlayerRespawnTime().containsKey(event.getPlayer().getUniqueId())) {
-
                 Player player = event.getPlayer();
-                int timeLeft = resource.getPlayerRespawnTime().get(player.getUniqueId());
+
+                //resourceManager.despawnResource(resource, player);
                 //replaceBlocks(resource, player);
 
-                new BukkitRunnable() {
-                    int time = timeLeft;
+                startTimer(resource, player, resource.getPlayerRespawnTime().get(player.getUniqueId()));
 
-                    @Override
-                    public void run() {
-                        if (Bukkit.getPlayer(player.getUniqueId()) != null) {
-                            if (time == (timeLeft - 1)) {
+                //replaceBlocks(resource, player);
 
-                                resourceManager.despawnResource(resource, player);
-                                replaceBlocks(resource, player);
-
-                            }
-                            if (time != 0) {
-                                resource.getPlayerRespawnTime().replace(player.getUniqueId(), time--);
-                            } else {
-
+//                new BukkitRunnable() {
+//                    int time = timeLeft;
+//
+//                    @Override
+//                    public void run() {
+//                        if (Bukkit.getPlayer(player.getUniqueId()) != null) {
+//                            if (time == (timeLeft - 1)) {
+//
 //                                resourceManager.despawnResource(resource, player);
+//                                replaceBlocks(resource, player);
+//
+//                            }
+//                            if (time != 0) {
+//                                resource.getPlayerRespawnTime().replace(player.getUniqueId(), time--);
+//                            } else {
+//
+////                                resourceManager.despawnResource(resource, player);
+//
+//                                for(Location loc : resource.getTemp()) {
+//                                    loc.getWorld().getBlockAt(loc).getState().update();
+//                                }
+//                                resourceManager.respawnResource(resource, player);
+//                                resource.getPlayerRespawnTime().remove(player.getUniqueId());
+//                                cancel();
+//                            }
+//                        } else {
+//                            Bukkit.broadcastMessage("Could not find " + player.getDisplayName() + ", they had " + resource.getPlayerRespawnTime().get(player.getUniqueId()) + " second(s) left on their timer-C");
+//                            cancel();
+//                        }
+//                    }
+//                }.runTaskTimer(plugin, 0L, 20L);
+//            } else {
+//                if(event.getPlayer().getLocation().distanceSquared(resource.getHologram().getLocation()) <= 20) {
+//                    resource.getHologram().spawnHologram(event.getPlayer());
+//                }
 
-                                for(Location loc : resource.getTemp()) {
-                                    loc.getWorld().getBlockAt(loc).getState().update();
-                                }
-                                resourceManager.respawnResource(resource, player);
-                                resource.getPlayerRespawnTime().remove(player.getUniqueId());
-                                cancel();
-                            }
-                        } else {
-                            //Bukkit.broadcastMessage("Could not find " + player.getDisplayName() + ", they had " + resource.getPlayerRespawnTime().get(player.getUniqueId()) + " second(s) left on their timer-C");
-                            cancel();
-                        }
-                    }
-                }.runTaskTimer(plugin, 0L, 20L);
-            } else {
-                if(event.getPlayer().getLocation().distanceSquared(resource.getHologram().getLocation()) <= 20) {
-                    resource.getHologram().spawnHologram(event.getPlayer());
-                }
             }
         }
     }
+
+    @EventHandler
+    private void respawnEvent(PlayerRespawnEvent event) {
+        for(ThalwyrnResource resource : resourceManager.getAllResources()) {
+            if(resource.getPlayerRespawnTime().containsKey(event.getPlayer().getUniqueId())) {
+                Player player = event.getPlayer();
+
+                //resourceManager.despawnResource(resource, player);
+                //replaceBlocks(resource, player);
+
+                startTimer(resource, player, resource.getPlayerRespawnTime().get(player.getUniqueId()));
+
+                //replaceBlocks(resource, player);
+
+//                new BukkitRunnable() {
+//                    int time = timeLeft;
+//
+//                    @Override
+//                    public void run() {
+//                        if (Bukkit.getPlayer(player.getUniqueId()) != null) {
+//                            if (time == (timeLeft - 1)) {
+//
+//                                resourceManager.despawnResource(resource, player);
+//                                replaceBlocks(resource, player);
+//
+//                            }
+//                            if (time != 0) {
+//                                resource.getPlayerRespawnTime().replace(player.getUniqueId(), time--);
+//                            } else {
+//
+////                                resourceManager.despawnResource(resource, player);
+//
+//                                for(Location loc : resource.getTemp()) {
+//                                    loc.getWorld().getBlockAt(loc).getState().update();
+//                                }
+//                                resourceManager.respawnResource(resource, player);
+//                                resource.getPlayerRespawnTime().remove(player.getUniqueId());
+//                                cancel();
+//                            }
+//                        } else {
+//                            Bukkit.broadcastMessage("Could not find " + player.getDisplayName() + ", they had " + resource.getPlayerRespawnTime().get(player.getUniqueId()) + " second(s) left on their timer-C");
+//                            cancel();
+//                        }
+//                    }
+//                }.runTaskTimer(plugin, 0L, 20L);
+//            } else {
+//                if(event.getPlayer().getLocation().distanceSquared(resource.getHologram().getLocation()) <= 20) {
+//                    resource.getHologram().spawnHologram(event.getPlayer());
+//                }
+
+            }
+        }
+    }
+
 
     private void decreaseHealth(ThalwyrnResource resource, Player player) {
         int respawnTime = ThalwyrnResources.getLevelConfig().getInt("respawn-time");
@@ -273,38 +341,39 @@ public class ResourceListener implements org.bukkit.event.Listener {
 
                 } else {
                     interactedPlayers.remove(player.getUniqueId());
-                    resourceManager.despawnResource(resource, player);
-
-                    replaceBlocks(resource, player);
-
                     resource.getHologram().despawn(player);
 
+                    //resourceManager.despawnResource(resource, player);
+                    //replaceBlocks(resource, player);
+
                     resource.getPlayerRespawnTime().put(player.getUniqueId(), respawnTime);
-                    new BukkitRunnable() {
-                        int time = respawnTime;
+                    startTimer(resource, player, resource.getPlayerRespawnTime().get(player.getUniqueId()));
 
-                        @Override
-                        public void run() {
-                            if (Bukkit.getPlayer(player.getUniqueId()) != null) {
-                                if(time != 0) {
-                                    resource.getPlayerRespawnTime().replace(player.getUniqueId(), time--);
-                                } else {
-//                                    resourceManager.despawnResource(resource, player);
-
-                                    for(Location loc : resource.getTemp()) {
-                                        loc.getWorld().getBlockAt(loc).getState().update();
-                                    }
-                                    resourceManager.respawnResource(resource, player);
-                                    interactedPlayers.remove(player.getUniqueId());
-                                    resource.getPlayerRespawnTime().remove(player.getUniqueId());
-                                    cancel();
-                                }
-                            } else {
-                                //Bukkit.broadcastMessage("Could not find " + player.getDisplayName() + ", they had " + resource.getPlayerRespawnTime().get(player.getUniqueId()) + " second(s) left on their timer.");
-                                cancel();
-                            }
-                        }
-                    }.runTaskTimer(plugin, 0L, 20L);
+//                    new BukkitRunnable() {
+//                        int time = respawnTime;
+//
+//                        @Override
+//                        public void run() {
+//                            if (Bukkit.getPlayer(player.getUniqueId()) != null) {
+//                                if(time != 0) {
+//                                    resource.getPlayerRespawnTime().replace(player.getUniqueId(), time--);
+//                                } else {
+////                                    resourceManager.despawnResource(resource, player);
+//
+//                                    for(Location loc : resource.getTemp()) {
+//                                        loc.getWorld().getBlockAt(loc).getState().update();
+//                                    }
+//                                    resourceManager.respawnResource(resource, player);
+//                                    interactedPlayers.remove(player.getUniqueId());
+//                                    resource.getPlayerRespawnTime().remove(player.getUniqueId());
+//                                    cancel();
+//                                }
+//                            } else {
+//                                Bukkit.broadcastMessage("Could not find " + player.getDisplayName() + ", they had " + resource.getPlayerRespawnTime().get(player.getUniqueId()) + " second(s) left on their timer.");
+//                                cancel();
+//                            }
+//                        }
+//                    }.runTaskTimer(plugin, 0L, 20L);
                     cancel();
                 }
             }
@@ -363,6 +432,43 @@ public class ResourceListener implements org.bukkit.event.Listener {
         }
     }
 
+    private void startTimer(ThalwyrnResource resource, Player player, int startTime) {
+        Bukkit.broadcastMessage("?");
+        new BukkitRunnable() {
+            int time = startTime;
+
+
+            @Override
+            public void run() {
+                if (Bukkit.getPlayer(player.getUniqueId()) != null) {
+
+                    if (time == (startTime - 1)) {
+                        resourceManager.despawnResource(resource, player);
+                        replaceBlocks(resource, player);
+                    }
+                    if(time != 0) {
+                        resource.getPlayerRespawnTime().replace(player.getUniqueId(), time--);
+                    } else {
+                        //resourceManager.despawnResource(resource, player);
+
+                        for(Location loc : resource.getTemp()) {
+                            loc.getWorld().getBlockAt(loc).getState().update();
+                        }
+                        resourceManager.respawnResource(resource, player);
+                        interactedPlayers.remove(player.getUniqueId());
+                        resource.getPlayerRespawnTime().remove(player.getUniqueId());
+                        cancel();
+                    }
+                } else {
+                    Bukkit.broadcastMessage("Could not find " + player.getDisplayName() + ", they had " + resource.getPlayerRespawnTime().get(player.getUniqueId()) + " second(s) left on their timer.");
+                    cancel();
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 20L);
+    }
+
+
+
 //    private void replaceAndStore(Block block, Player player) {
 //        Location bLoc = new Location(block.getLocation().getWorld(), block.getX(), block.getY(), block.getZ());
 //        //blocksFakeDestroyed.put(bLoc, block.getBlockData());
@@ -380,6 +486,7 @@ public class ResourceListener implements org.bukkit.event.Listener {
 //    public Map<Location, BlockData> getBlocksFakeDestroyed() {
 //        return blocksFakeDestroyed;
 //    }
+
 
 
 }
