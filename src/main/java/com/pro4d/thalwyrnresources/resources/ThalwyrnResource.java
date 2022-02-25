@@ -209,7 +209,7 @@ public class ThalwyrnResource {
     }
 
     public void updateResource() {
-        ThalwyrnResources.getResourceManager().updateResourceConfig(this);
+        ThalwyrnResources.getResourceManager().writeToConfig(this);
         if(getHologram() != null) {
             Bukkit.getOnlinePlayers().forEach(player -> getHologram().updateHologram(this, player));
         }

@@ -212,57 +212,7 @@ public class ResourceManager {
                 config.set(itemPath + ".left-click", resource.getLeftClick());
             }
             if(resource.getRightClick() != null) {
-                config.set(itemPath + ".right-click", resource.getRightClick().serialize());
-            }
-        }
-
-//        //FIX BELOW
-//        if(resource.getHologram() != null) {
-//            config.set(resourceSection + ".hologram-location.x", resource.getHologram().getLocation().getBlockX());
-//            config.set(resourceSection + ".hologram-location.y", resource.getHologram().getLocation().getBlockY());
-//            config.set(resourceSection + ".hologram-location.z", resource.getHologram().getLocation().getBlockZ());
-//        }
-        plugin.saveCustomConfig();
-    }
-
-    public void updateResourceConfig(ThalwyrnResource resource) {
-        if(!config.isConfigurationSection("Resources")) config.createSection("Resources");
-        String path = configPath + resource.getId();
-        String locationPath = path + ".locations";
-
-        config.set(locationPath + ".world", resource.getLocation().getWorld().getName());
-
-        config.set(locationPath + ".x", df.format(resource.getLocation().getX()));
-        config.set(locationPath + ".y", df.format(resource.getLocation().getY()));
-        config.set(locationPath + ".z", df.format(resource.getLocation().getZ()));
-
-        config.set(path + ".levels", resource.getLevel());
-        config.set(path + ".health", resource.getHealth());
-        config.set(path + ".xp", resource.getXp());
-
-        config.set(path + ".jobs", resource.getJob().getJobName());
-        switch (resource.getJob()) {
-
-            case WOODCUTTING:
-                config.set(path + ".type", "Schematic");
-                config.set(path + ".type.Schem-1", resource.getType());
-                config.set(path + ".type.Schem-2", resource.getExtra());
-                break;
-
-            default:
-                config.set(path + ".type", "Preset");
-                config.set(path + ".type.preset", resource.getType());
-                break;
-        }
-
-        if(resource.getLeftClick() != null || resource.getRightClick() != null) {
-            String itemPath = path + ".items";
-            if(resource.getLeftClick() != null) {
-                config.set(itemPath + ".left-click", resource.getLeftClick());
-            }
-
-            if(resource.getRightClick() != null) {
-                config.set(itemPath + ".right-click", resource.getRightClick().serialize());
+                config.set(itemPath + ".right-click", resource.getRightClick());
             }
         }
 

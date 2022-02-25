@@ -86,15 +86,15 @@ public class ResourceListener implements org.bukkit.event.Listener {
 
                     decreaseHealth(resource, player);
 
-                    ItemStack item;
+                    ItemStack item = null;
                     if (event.getAction().equals(Action.LEFT_CLICK_BLOCK)) {
-
-                        item = resource.getLeftClick();
-
+                        if(resource.getLeftClick() != null) {
+                            item = resource.getLeftClick();
+                        }
                     } else {
-
-                        item = resource.getRightClick();
-
+                        if(resource.getRightClick() != null) {
+                            item = resource.getRightClick();
+                        }
                     }
                     if (item != null) {
 
