@@ -65,7 +65,7 @@ public class ResourceListener implements org.bukkit.event.Listener {
                 if (listOfBlock.contains(block)) {
 
                     if(resource.getPlayerRespawnTime().containsKey(player.getUniqueId())) {
-                        player.sendBlockChange(block.getLocation(), block.getBlockData());
+                        //player.sendBlockChange(block.getLocation(), block.getBlockData());
                         event.setCancelled(true);
                         return;
                     }
@@ -459,7 +459,7 @@ public class ResourceListener implements org.bukkit.event.Listener {
                         cancel();
                     }
                 } else {
-                    Bukkit.broadcastMessage("Could not find " + player.getDisplayName() + ", they had " + resource.getPlayerRespawnTime().get(player.getUniqueId()) + " second(s) left on their timer.");
+                    //Bukkit.broadcastMessage("Could not find " + player.getDisplayName() + ", they had " + resource.getPlayerRespawnTime().get(player.getUniqueId()) + " second(s) left on their timer.");
                     cancel();
                 }
             }
