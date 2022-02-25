@@ -422,7 +422,7 @@ public class ResourceListener implements org.bukkit.event.Listener {
         for(BlockVector3 v : region) {
             Vector3 originalVector = origin.subtract(v).multiply(-1).toVector3();
             Vector3 vector = Vector3.at(originalVector.getX(), originalVector.getY(), originalVector.getZ());
-            Location loc = new Location(resourceLoc.getWorld(), resourceLoc.getBlockX() + vector.getX(), resourceLoc.getBlockY() + vector.getY(),resourceLoc.getBlockZ() + vector.getZ());
+            Location loc = new Location(resourceLoc.getWorld(), resourceLoc.getBlockX() + vector.getX(), (resourceLoc.getBlockY() + vector.getY() - 1),resourceLoc.getBlockZ() + vector.getZ());
 
             resource.getTemp().add(loc);
 
