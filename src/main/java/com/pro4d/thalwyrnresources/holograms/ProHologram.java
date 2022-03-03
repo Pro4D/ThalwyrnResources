@@ -1,12 +1,10 @@
 package com.pro4d.thalwyrnresources.holograms;
 
-import com.pro4d.thalwyrnresources.enums.JobTypes;
 import com.pro4d.thalwyrnresources.resources.ThalwyrnResource;
 import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityDestroy;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
 import net.minecraft.network.protocol.game.PacketPlayOutSpawnEntity;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.decoration.EntityArmorStand;
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
@@ -18,75 +16,66 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("ConstantConditions")
 public class ProHologram {
 
-    private final Location location;
-    private int health;
-    private int level;
-    private String type;
-    private JobTypes job;
+    private Location location;
+
+    private String name;
+
+    private final ThalwyrnResource parentResource;
 
     private final List<ProHologramLine> lines;
     private int id;
-    private Entity entity;
 
-    private final ProHologramLine leftClickHologram;
-    private final ProHologramLine rightClickHologram;
+    private ProHologramLine leftClickHologram;
+    private ProHologramLine rightClickHologram;
 
     public ProHologram(ThalwyrnResource resource, Location loc) {
-        this.location = loc.add(0, 1.2, 0);
-        this.health = resource.getHealth();
-        this.level = resource.getLevel();
-        this.type = resource.getType();
-        this.job = resource.getJob();
+        location = loc.clone().add(0, 1.2, 0);
 
+        parentResource = resource;
         lines = new ArrayList<>();
 
-        leftClickHologram = new ProHologramLine(null, this, null);
-        rightClickHologram = new ProHologramLine(null, this, null);
-
-
+        name = "Hologram";
+        resource.setHologram(this);
     }
 
     public void spawnHologram(Player player) {
         EntityArmorStand armorStand = new EntityArmorStand(((CraftWorld) location.getWorld()).getHandle(), location.getX(), location.getY(), location.getZ());
-        armorStand.j(true);
+        armorStand.j(true); //invisible
 
-        armorStand.n(true);
-        //a r s t
+        armorStand.n(true); //name visible
 
+        armorStand.s(false); //base_plate
 
-        armorStand.s(false);
+        armorStand.e(true); //gravity
 
-        armorStand.e(true);
+        armorStand.t(true); //marker
 
-        armorStand.t(true);
+        armorStand.a(IChatBaseComponent.a(name)); //set name
 
-        switch (job) {
-            case WOODCUTTING:
-                //armorStand.setCustomName(IChatBaseComponent.a(WordUtils.capitalize(job.getJobName())));
-                armorStand.a(IChatBaseComponent.a("Tree"));
-                break;
-//            case MINING:
-//                armorStand.setCustomName(IChatBaseComponent.a(WordUtils.capitalize(ThalwyrnResourcesUtils.formatMessage(type))));
-        }
+        armorStand.a(true); //small
 
-        armorStand.a(true);
-
-        entity = armorStand;
-        id = armorStand.ae();
+        id = armorStand.ae(); //id
 
         PacketPlayOutSpawnEntity spawnPacket = new PacketPlayOutSpawnEntity(armorStand);
-        PacketPlayOutEntityMetadata metadataPacket = new PacketPlayOutEntityMetadata(armorStand.ae(), armorStand.ai(), true);
+        PacketPlayOutEntityMetadata metadataPacket = new PacketPlayOutEntityMetadata(id, armorStand.ai(), true);
 
         CraftPlayer craftPlayer = (CraftPlayer) player;
-
         craftPlayer.getHandle().b.a(spawnPacket);
         craftPlayer.getHandle().b.a(metadataPacket);
 
-        Location loc = new Location(location.getWorld(), location.getX(), location.getY() - 0.237, location.getZ());
-        new ProHologramLine(WordUtils.capitalizeFully(job.getJobName()) + " Lv. Min: " + level, this, loc).spawnLine(player);
+        Location loc = new Location(location.getWorld(), location.getX(), location.getY() - 0.249, location.getZ());
 
+        ProHologramLine line = new ProHologramLine(this, loc);
+        line.setName(WordUtils.capitalizeFully(parentResource.getJob().getJobName()) + " Lv. Min: " + parentResource.getLevel());
+        //line.spawnLine(player);
+
+        for(ProHologramLine hologramLine : lines) {
+            hologramLine.updateLine();
+        }
+        Bukkit.broadcastMessage("LS: " + lines.size());
     }
 
     public void despawn(Player player) {
@@ -97,30 +86,46 @@ public class ProHologram {
         }
     }
 
-    public void updateHologram(ThalwyrnResource resource, Player player) {
-        Bukkit.getOnlinePlayers().forEach(this::despawn);
-
-        this.health = resource.getHealth();
-        this.level = resource.getLevel();
-        this.type = resource.getType();
-        this.job = resource.getJob();
-
-        spawnHologram(player);
+    public void updateHologram(ThalwyrnResource resource) {
+        resource.getLocation().getWorld().getPlayers().forEach(p -> {
+            if(!resource.getPlayerRespawnTime().containsKey(p.getUniqueId())) {
+                resource.getHologram().despawn(p);
+                spawnHologram(p);
+            }
+        });
     }
 
-
-    public void setLeftClickHologram(String variable) {
-        Location loc = new Location(location.getWorld(), location.getX(), location.getY() - .7, location.getZ());
-
-        leftClickHologram.setLineLocation(loc);
-        leftClickHologram.setVariable(variable);
+    public ProHologramLine getLeftClickHologram() {
+        return leftClickHologram;
     }
 
-    public void setRightClickHologram(String variable) {
-        Location loc = new Location(location.getWorld(), location.getX(), location.getY() - .98, location.getZ());
+    public ProHologramLine getRightClickHologram() {
+        return rightClickHologram;
+    }
 
-        rightClickHologram.setLineLocation(loc);
-        rightClickHologram.setVariable(variable);
+    public String getName() {
+        return name;
+    }
+
+    public void setLeftClickHologram(ProHologramLine line) {
+        leftClickHologram = line;
+    }
+
+    public void setRightClickHologram(ProHologramLine line) {
+        //Location loc = new Location(location.getWorld(), location.getX(), location.getY() - .98, location.getZ());
+
+        //rightClickHologram.setLocation(loc);
+        //rightClickHologram.setName(variable);
+
+        rightClickHologram = line;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setLocation(Location location) {
+        this.location = location;
     }
 
     public Location getLocation() {
@@ -131,11 +136,19 @@ public class ProHologram {
         return lines;
     }
 
-    public int getId() {
-        return id;
+    public ThalwyrnResource getParentResource() {
+        return parentResource;
     }
 
-    public Entity getEntity() {
-        return entity;
-    }
+
+//        switch (job) {
+//            case WOODCUTTING:
+//                armorStand.setCustomName(IChatBaseComponent.a(WordUtils.capitalize(job.getJobName())));
+//                break;
+//            case MINING:
+//                armorStand.setCustomName(IChatBaseComponent.a(WordUtils.capitalize(ThalwyrnResourcesUtils.formatMessage(type))));
+
+//    public int getId() {
+//        return id;
+//    }
 }

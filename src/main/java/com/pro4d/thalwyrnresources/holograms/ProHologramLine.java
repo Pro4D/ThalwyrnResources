@@ -5,7 +5,6 @@ import net.minecraft.network.protocol.game.PacketPlayOutEntityDestroy;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
 import net.minecraft.network.protocol.game.PacketPlayOutSpawnEntity;
 import net.minecraft.world.entity.decoration.EntityArmorStand;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_18_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer;
@@ -13,36 +12,36 @@ import org.bukkit.entity.Player;
 
 public class ProHologramLine {
 
-    private String variable;
-    private Location lineLocation;
-
+    private String name;
+    private Location location;
+    private ProHologram parentHologram;
 
     private int id;
 
-    public ProHologramLine(String variable, ProHologram parentHologram, Location location) {
-        this.variable = variable;
-        parentHologram.getLines().add(this);
-        lineLocation = location;
+    public ProHologramLine(ProHologram parent, Location lineLocation) {
+        parentHologram = parent;
+        parent.getLines().add(this);
+        location = lineLocation;
 
-        //spawnLine(player);
+        name = "Hologram Line";
     }
 
     public void spawnLine(Player player) {
-        EntityArmorStand armorStand = new EntityArmorStand(((CraftWorld) lineLocation.getWorld()).getHandle(), lineLocation.getX(), lineLocation.getY(), lineLocation.getZ());
-        armorStand.j(true);
-        armorStand.n(true);
-        armorStand.s(false);
-        armorStand.e(true);
-        armorStand.t(true);
+        EntityArmorStand armorStand = new EntityArmorStand(((CraftWorld) location.getWorld()).getHandle(), location.getX(), location.getY(), location.getZ());
+        armorStand.j(true); //invisible
+        armorStand.n(true); //name visible
+        armorStand.s(false); //base_plate
+        armorStand.e(true); //gravity
+        armorStand.t(true); //marker
 
-        armorStand.a(IChatBaseComponent.a(variable));
+        armorStand.a(IChatBaseComponent.a(name)); //set name
 
-        armorStand.a(true);
+        armorStand.a(true); //small
 
-        id = armorStand.ae();
+        id = armorStand.ae(); //id
 
         PacketPlayOutSpawnEntity spawnPacket = new PacketPlayOutSpawnEntity(armorStand);
-        PacketPlayOutEntityMetadata metadataPacket = new PacketPlayOutEntityMetadata(armorStand.ae(), armorStand.ai(), true);
+        PacketPlayOutEntityMetadata metadataPacket = new PacketPlayOutEntityMetadata(id, armorStand.ai(), true);
 
         CraftPlayer craftPlayer = (CraftPlayer) player;
 
@@ -54,29 +53,42 @@ public class ProHologramLine {
     public void despawn(Player player) {
         PacketPlayOutEntityDestroy destroyPacket = new PacketPlayOutEntityDestroy(id);
         ((CraftPlayer) player).getHandle().b.a(destroyPacket);
+        //parentHologram.getLines().remove(this);
     }
 
     public void updateLine() {
-        Bukkit.getOnlinePlayers().forEach(this::despawn);
-        Bukkit.getOnlinePlayers().forEach(this::spawnLine);
+        parentHologram.getLocation().getWorld().getPlayers().forEach(p -> {
+            if(!parentHologram.getParentResource().getPlayerRespawnTime().containsKey(p.getUniqueId())) {
+                despawn(p);
+                spawnLine(p);
+            }
+        });
     }
 
-    public Location getLineLocation() {
-        return lineLocation;
+    public String getName() {
+        return name;
     }
 
-    public int getId() {
-        return id;
+    public ProHologram getParentHologram() {
+        return parentHologram;
     }
 
-    public void setVariable(String variable) {
-        this.variable = variable;
-        updateLine();
+    public Location getLocation() {
+        return location;
     }
 
-    public void setLineLocation(Location location) {
-        this.lineLocation = location;
-        updateLine();
+
+    public void setLocation(Location location) {
+        this.location = location;
     }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setParentHologram(ProHologram parentHologram) {
+        this.parentHologram = parentHologram;
+    }
+
 
 }

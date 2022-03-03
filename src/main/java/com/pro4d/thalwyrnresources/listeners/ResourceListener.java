@@ -424,10 +424,11 @@ public class ResourceListener implements org.bukkit.event.Listener {
             Vector3 vector = Vector3.at(originalVector.getX(), originalVector.getY(), originalVector.getZ());
             Location loc = new Location(resourceLoc.getWorld(), resourceLoc.getBlockX() + vector.getX(), (resourceLoc.getBlockY() + vector.getY() - 1),resourceLoc.getBlockZ() + vector.getZ());
 
-            resource.getTemp().add(loc);
-
             BlockData data = BukkitAdapter.adapt(clipboard.getFullBlock(v));
+            //if(data.getMaterial() != Material.AIR) {
+            resource.getTemp().add(loc);
             player.sendBlockChange(loc, data);
+            //}
 
         }
     }
@@ -453,6 +454,7 @@ public class ResourceListener implements org.bukkit.event.Listener {
                         for(Location loc : resource.getTemp()) {
                             loc.getWorld().getBlockAt(loc).getState().update();
                         }
+
                         resourceManager.respawnResource(resource, player);
                         interactedPlayers.remove(player.getUniqueId());
                         resource.getPlayerRespawnTime().remove(player.getUniqueId());

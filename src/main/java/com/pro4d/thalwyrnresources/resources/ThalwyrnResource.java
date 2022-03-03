@@ -3,6 +3,7 @@ package com.pro4d.thalwyrnresources.resources;
 import com.pro4d.thalwyrnresources.ThalwyrnResources;
 import com.pro4d.thalwyrnresources.enums.JobTypes;
 import com.pro4d.thalwyrnresources.holograms.ProHologram;
+import com.pro4d.thalwyrnresources.holograms.ProHologramLine;
 import com.pro4d.thalwyrnresources.utils.ThalwyrnResourcesUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -154,33 +155,11 @@ public class ThalwyrnResource {
 
     public void setLeftClick(ItemStack leftClick) {
         this.leftClick = leftClick;
-        if(leftClick.getItemMeta() != null) {
-            if (this.leftClick.getItemMeta().hasDisplayName()) {
-                if (getHologram() != null) {
-                    getHologram().setLeftClickHologram("Left-Click for " + this.leftClick.getItemMeta().getDisplayName());
-                }
-            } else {
-                if (getHologram() != null) {
-                    getHologram().setLeftClickHologram("Left-Click for " + ThalwyrnResourcesUtils.formatMessage(this.leftClick.getType().name()));
-                }
-            }
-        }
         updateResource();
     }
 
     public void setRightClick(ItemStack rightClick) {
         this.rightClick = rightClick;
-        if(rightClick.getItemMeta() != null) {
-            if (this.rightClick.getItemMeta().hasDisplayName()) {
-                if (getHologram() != null) {
-                    getHologram().setRightClickHologram("Right-Click for " + this.rightClick.getItemMeta().getDisplayName());
-                }
-            } else {
-                if (getHologram() != null) {
-                    getHologram().setRightClickHologram("Right-Click for " + ThalwyrnResourcesUtils.formatMessage(this.rightClick.getType().name()));
-                }
-            }
-        }
         updateResource();
     }
 
@@ -211,7 +190,51 @@ public class ThalwyrnResource {
     public void updateResource() {
         ThalwyrnResources.getResourceManager().writeToConfig(this);
         if(getHologram() != null) {
-            Bukkit.getOnlinePlayers().forEach(player -> getHologram().updateHologram(this, player));
+
+            if(leftClick != null) {
+                if(leftClick.getItemMeta() != null) {
+                    if(getHologram().getLeftClickHologram() == null) {
+                        ProHologramLine line = new ProHologramLine(getHologram(), getHologram().getLocation());
+                        getHologram().setLeftClickHologram(line);
+                    }
+
+                    Location loc = new Location(getHologram().getLocation().getWorld(), getHologram().getLocation().getX(), getHologram().getLocation().getY() - .7, getHologram().getLocation().getZ());
+                    getHologram().getLeftClickHologram().setLocation(loc);
+
+                    if (leftClick.getItemMeta().hasDisplayName()) {
+                        //getHologram().setLeftClickHologram("Left-Click for " + leftClick.getItemMeta().getDisplayName());
+
+//                        getHologram().getLeftClickHologram().setLocation(loc);
+
+                        getHologram().getLeftClickHologram().setName("Left-Click for " + leftClick.getItemMeta().getDisplayName());
+
+                    } else {
+                        //getHologram().setLeftClickHologram("Left-Click for " + ThalwyrnResourcesUtils.formatMessage(leftClick.getType().name()));
+
+                        getHologram().getLeftClickHologram().setName("Left-Click for " + ThalwyrnResourcesUtils.formatMessage(leftClick.getType().name()));
+                    }
+                }
+            }
+
+            if(rightClick != null) {
+                if(rightClick.getItemMeta() != null) {
+                    if(getHologram().getRightClickHologram() == null) getHologram().setRightClickHologram(new ProHologramLine(getHologram(), getHologram().getLocation()));
+                    Location loc = new Location(getHologram().getLocation().getWorld(), getHologram().getLocation().getX(), getHologram().getLocation().getY() - .952, getHologram().getLocation().getZ());
+                    getHologram().getRightClickHologram().setLocation(loc);
+
+                    if (rightClick.getItemMeta().hasDisplayName()) {
+                        //getHologram().setRightClickHologram("Right-Click for " + rightClick.getItemMeta().getDisplayName());
+                        getHologram().getRightClickHologram().setName("Right-Click for " + rightClick.getItemMeta().getDisplayName());
+
+                    } else {
+                        //getHologram().setRightClickHologram("Right-Click for " + ThalwyrnResourcesUtils.formatMessage(rightClick.getType().name()));
+                        getHologram().getRightClickHologram().setName("Right-Click for " + ThalwyrnResourcesUtils.formatMessage(rightClick.getType().name()));
+
+                    }
+                }
+            }
+
+            getHologram().updateHologram(this);
         }
     }
 

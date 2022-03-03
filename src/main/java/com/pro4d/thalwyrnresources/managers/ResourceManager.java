@@ -3,6 +3,7 @@ package com.pro4d.thalwyrnresources.managers;
 import com.pro4d.thalwyrnresources.ThalwyrnResources;
 import com.pro4d.thalwyrnresources.enums.JobTypes;
 import com.pro4d.thalwyrnresources.holograms.ProHologram;
+import com.pro4d.thalwyrnresources.holograms.ProHologramLine;
 import com.pro4d.thalwyrnresources.resources.ThalwyrnResource;
 import com.pro4d.thalwyrnresources.utils.ThalwyrnResourcesUtils;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
@@ -23,7 +24,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-@SuppressWarnings({"CommentedOutCode", "SwitchStatementWithTooFewBranches"})
+@SuppressWarnings({"CommentedOutCode", "SwitchStatementWithTooFewBranches", "ConstantConditions"})
 public class ResourceManager {
 
     private final List<ThalwyrnResource> allResources;
@@ -132,14 +133,16 @@ public class ResourceManager {
                 }
 
 
-
                 ProHologram proHologram = new ProHologram(resource, loc);
-                resource.setHologram(proHologram);
-                Bukkit.getOnlinePlayers().forEach(proHologram::spawnHologram);
+                proHologram.setName("Tree");
 
-//                constructionManager.getResourceBlockMap().put(blockList, resource.getId());
-//
-//                resource.tempMethod();
+
+                loc.getWorld().getPlayers().forEach(player -> {
+                    if(!resource.getPlayerRespawnTime().containsKey(player.getUniqueId())) {
+                        proHologram.spawnHologram(player);
+                    }
+                });
+
                 break;
         }
     }
@@ -156,7 +159,15 @@ public class ResourceManager {
         for(Block block : resource.getInteractBlocks()) {
             player.sendBlockChange(block.getLocation(), block.getBlockData());
         }
+
         resource.getHologram().spawnHologram(player);
+        for(ProHologramLine line : resource.getHologram().getLines()) {
+            line.spawnLine(player);
+        }
+        Bukkit.broadcastMessage("RLS: " + resource.getHologram().getLines().size());
+        Bukkit.broadcastMessage("RH1-N: " + resource.getHologram().getName());
+        Bukkit.broadcastMessage("RHL-N: " + resource.getHologram().getLeftClickHologram().getName());
+
     }
 
     public ThalwyrnResource getResource(int id) {
@@ -302,6 +313,7 @@ public class ResourceManager {
             }
 
             ThalwyrnResource resource = new ThalwyrnResource(level, job, location, type, extra, Integer.parseInt(id));
+            spawnResource(resource, resource.getLocation());
 
             if(config.contains(path + ".xp")) {
                 if(config.isInt(path + ".xp")) {
@@ -326,7 +338,7 @@ public class ResourceManager {
 
             }
 
-            spawnResource(resource, resource.getLocation());
+
 
         }
 
