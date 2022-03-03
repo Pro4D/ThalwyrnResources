@@ -116,7 +116,6 @@ public class ResourceListener implements org.bukkit.event.Listener {
         }
     }
 
-    //spawn resource (aka send packet) when close enough?
 
     @EventHandler
     private void moveEvent(PlayerMoveEvent event) {
@@ -222,44 +221,6 @@ public class ResourceListener implements org.bukkit.event.Listener {
                 //replaceBlocks(resource, player);
 
                 startTimer(resource, player, resource.getPlayerRespawnTime().get(player.getUniqueId()));
-
-                //replaceBlocks(resource, player);
-
-//                new BukkitRunnable() {
-//                    int time = timeLeft;
-//
-//                    @Override
-//                    public void run() {
-//                        if (Bukkit.getPlayer(player.getUniqueId()) != null) {
-//                            if (time == (timeLeft - 1)) {
-//
-//                                resourceManager.despawnResource(resource, player);
-//                                replaceBlocks(resource, player);
-//
-//                            }
-//                            if (time != 0) {
-//                                resource.getPlayerRespawnTime().replace(player.getUniqueId(), time--);
-//                            } else {
-//
-////                                resourceManager.despawnResource(resource, player);
-//
-//                                for(Location loc : resource.getTemp()) {
-//                                    loc.getWorld().getBlockAt(loc).getState().update();
-//                                }
-//                                resourceManager.respawnResource(resource, player);
-//                                resource.getPlayerRespawnTime().remove(player.getUniqueId());
-//                                cancel();
-//                            }
-//                        } else {
-//                            Bukkit.broadcastMessage("Could not find " + player.getDisplayName() + ", they had " + resource.getPlayerRespawnTime().get(player.getUniqueId()) + " second(s) left on their timer-C");
-//                            cancel();
-//                        }
-//                    }
-//                }.runTaskTimer(plugin, 0L, 20L);
-//            } else {
-//                if(event.getPlayer().getLocation().distanceSquared(resource.getHologram().getLocation()) <= 20) {
-//                    resource.getHologram().spawnHologram(event.getPlayer());
-//                }
 
             }
         }
@@ -379,37 +340,6 @@ public class ResourceListener implements org.bukkit.event.Listener {
             }
         }.runTaskTimer(plugin, 0, 10);
     }
-
-//    private void respawnTemp(ThalwyrnResource resource, Player player) {
-//        int minX = resource.getMin().getBlockX();
-//        int minY = resource.getMin().getBlockY();
-//        int minZ = resource.getMin().getBlockZ();
-//
-//        int maxX = resource.getMax().getBlockX();
-//        int maxY = resource.getMax().getBlockY();
-//        int maxZ = resource.getMax().getBlockZ();
-//
-//
-//        World world = resource.getMin().getWorld();
-//        assert world != null;
-//        List<Block> blockList = new ArrayList<>();
-//
-//        for (int x = minX; x != maxX + 1; x++) {
-//            for (int y = minY; y != maxY + 1; y++) {
-//                for (int z = minZ; z != maxZ + 1; z++) {
-//                    Block b = world.getBlockAt(x, y, z);
-//                    blockList.add(b);
-//                }
-//            }
-//        }
-//
-//        resource.getGhostBlocks().forEach(block -> block.getState().update());
-//        for (Block block : blockList) {
-//            player.sendBlockChange(block.getLocation(), block.getBlockData());
-//            //block.getState().update();
-//        }
-//
-//    }
 
 
     private void replaceBlocks(ThalwyrnResource resource, Player player) {

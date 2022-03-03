@@ -165,8 +165,6 @@ public class ResourceManager {
             line.spawnLine(player);
         }
         Bukkit.broadcastMessage("RLS: " + resource.getHologram().getLines().size());
-        Bukkit.broadcastMessage("RH1-N: " + resource.getHologram().getName());
-        Bukkit.broadcastMessage("RHL-N: " + resource.getHologram().getLeftClickHologram().getName());
 
     }
 

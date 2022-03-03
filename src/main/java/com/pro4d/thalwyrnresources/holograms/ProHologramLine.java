@@ -53,7 +53,6 @@ public class ProHologramLine {
     public void despawn(Player player) {
         PacketPlayOutEntityDestroy destroyPacket = new PacketPlayOutEntityDestroy(id);
         ((CraftPlayer) player).getHandle().b.a(destroyPacket);
-        //parentHologram.getLines().remove(this);
     }
 
     public void updateLine() {

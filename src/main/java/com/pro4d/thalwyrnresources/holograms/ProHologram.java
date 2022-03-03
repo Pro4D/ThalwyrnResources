@@ -112,11 +112,6 @@ public class ProHologram {
     }
 
     public void setRightClickHologram(ProHologramLine line) {
-        //Location loc = new Location(location.getWorld(), location.getX(), location.getY() - .98, location.getZ());
-
-        //rightClickHologram.setLocation(loc);
-        //rightClickHologram.setName(variable);
-
         rightClickHologram = line;
     }
 
