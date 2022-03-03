@@ -65,7 +65,7 @@ public class ResourceListener implements org.bukkit.event.Listener {
                 if (listOfBlock.contains(block)) {
 
                     if(resource.getPlayerRespawnTime().containsKey(player.getUniqueId())) {
-                        //player.sendBlockChange(block.getLocation(), block.getBlockData());
+                        player.sendBlockChange(block.getLocation(), block.getBlockData());
                         event.setCancelled(true);
                         return;
                     }
@@ -213,15 +213,17 @@ public class ResourceListener implements org.bukkit.event.Listener {
 
     @EventHandler
     private void joinEvent(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
         for(ThalwyrnResource resource : resourceManager.getAllResources()) {
-            if(resource.getPlayerRespawnTime().containsKey(event.getPlayer().getUniqueId())) {
-                Player player = event.getPlayer();
-
-                //resourceManager.despawnResource(resource, player);
-                //replaceBlocks(resource, player);
+            if(resource.getPlayerRespawnTime().containsKey(player.getUniqueId())) {
 
                 startTimer(resource, player, resource.getPlayerRespawnTime().get(player.getUniqueId()));
 
+            } else {
+                if(resource.getHologram().getLocation().distanceSquared(player.getLocation()) <= 90) {
+                    resource.getHologram().spawnHologram(player);
+                    player.sendMessage("DC1");
+                }
             }
         }
     }
@@ -379,8 +381,6 @@ public class ResourceListener implements org.bukkit.event.Listener {
                     if(time != 0) {
                         resource.getPlayerRespawnTime().replace(player.getUniqueId(), time--);
                     } else {
-                        //resourceManager.despawnResource(resource, player);
-
                         for(Location loc : resource.getTemp()) {
                             loc.getWorld().getBlockAt(loc).getState().update();
                         }

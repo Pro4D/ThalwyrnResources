@@ -7,7 +7,6 @@ import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
 import net.minecraft.network.protocol.game.PacketPlayOutSpawnEntity;
 import net.minecraft.world.entity.decoration.EntityArmorStand;
 import org.apache.commons.lang.WordUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_18_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer;
@@ -30,6 +29,7 @@ public class ProHologram {
 
     private ProHologramLine leftClickHologram;
     private ProHologramLine rightClickHologram;
+    private final ProHologramLine line;
 
     public ProHologram(ThalwyrnResource resource, Location loc) {
         location = loc.clone().add(0, 1.2, 0);
@@ -39,6 +39,9 @@ public class ProHologram {
 
         name = "Hologram";
         resource.setHologram(this);
+
+        Location lineLoc = new Location(location.getWorld(), location.getX(), location.getY() - 0.249, location.getZ());
+        line = new ProHologramLine(this, lineLoc);
     }
 
     public void spawnHologram(Player player) {
@@ -66,16 +69,11 @@ public class ProHologram {
         craftPlayer.getHandle().b.a(spawnPacket);
         craftPlayer.getHandle().b.a(metadataPacket);
 
-        Location loc = new Location(location.getWorld(), location.getX(), location.getY() - 0.249, location.getZ());
-
-        ProHologramLine line = new ProHologramLine(this, loc);
         line.setName(WordUtils.capitalizeFully(parentResource.getJob().getJobName()) + " Lv. Min: " + parentResource.getLevel());
-        //line.spawnLine(player);
 
         for(ProHologramLine hologramLine : lines) {
             hologramLine.updateLine();
         }
-        Bukkit.broadcastMessage("LS: " + lines.size());
     }
 
     public void despawn(Player player) {

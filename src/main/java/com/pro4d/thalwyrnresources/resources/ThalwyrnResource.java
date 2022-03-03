@@ -193,24 +193,13 @@ public class ThalwyrnResource {
 
             if(leftClick != null) {
                 if(leftClick.getItemMeta() != null) {
-                    if(getHologram().getLeftClickHologram() == null) {
-                        ProHologramLine line = new ProHologramLine(getHologram(), getHologram().getLocation());
-                        getHologram().setLeftClickHologram(line);
-                    }
-
+                    if(getHologram().getLeftClickHologram() == null) getHologram().setLeftClickHologram(new ProHologramLine(getHologram(), getHologram().getLocation()));
                     Location loc = new Location(getHologram().getLocation().getWorld(), getHologram().getLocation().getX(), getHologram().getLocation().getY() - .7, getHologram().getLocation().getZ());
                     getHologram().getLeftClickHologram().setLocation(loc);
 
                     if (leftClick.getItemMeta().hasDisplayName()) {
-                        //getHologram().setLeftClickHologram("Left-Click for " + leftClick.getItemMeta().getDisplayName());
-
-//                        getHologram().getLeftClickHologram().setLocation(loc);
-
                         getHologram().getLeftClickHologram().setName("Left-Click for " + leftClick.getItemMeta().getDisplayName());
-
                     } else {
-                        //getHologram().setLeftClickHologram("Left-Click for " + ThalwyrnResourcesUtils.formatMessage(leftClick.getType().name()));
-
                         getHologram().getLeftClickHologram().setName("Left-Click for " + ThalwyrnResourcesUtils.formatMessage(leftClick.getType().name()));
                     }
                 }
@@ -223,11 +212,9 @@ public class ThalwyrnResource {
                     getHologram().getRightClickHologram().setLocation(loc);
 
                     if (rightClick.getItemMeta().hasDisplayName()) {
-                        //getHologram().setRightClickHologram("Right-Click for " + rightClick.getItemMeta().getDisplayName());
                         getHologram().getRightClickHologram().setName("Right-Click for " + rightClick.getItemMeta().getDisplayName());
 
                     } else {
-                        //getHologram().setRightClickHologram("Right-Click for " + ThalwyrnResourcesUtils.formatMessage(rightClick.getType().name()));
                         getHologram().getRightClickHologram().setName("Right-Click for " + ThalwyrnResourcesUtils.formatMessage(rightClick.getType().name()));
 
                     }

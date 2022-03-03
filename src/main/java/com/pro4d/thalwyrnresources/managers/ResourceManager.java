@@ -164,7 +164,6 @@ public class ResourceManager {
         for(ProHologramLine line : resource.getHologram().getLines()) {
             line.spawnLine(player);
         }
-        Bukkit.broadcastMessage("RLS: " + resource.getHologram().getLines().size());
 
     }
 
