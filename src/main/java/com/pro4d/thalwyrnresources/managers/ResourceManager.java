@@ -3,7 +3,6 @@ package com.pro4d.thalwyrnresources.managers;
 import com.pro4d.thalwyrnresources.ThalwyrnResources;
 import com.pro4d.thalwyrnresources.enums.JobTypes;
 import com.pro4d.thalwyrnresources.holograms.ProHologram;
-import com.pro4d.thalwyrnresources.holograms.ProHologramLine;
 import com.pro4d.thalwyrnresources.resources.ThalwyrnResource;
 import com.pro4d.thalwyrnresources.utils.ThalwyrnResourcesUtils;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
@@ -55,7 +54,6 @@ public class ResourceManager {
     public ThalwyrnResource createResource(int level, JobTypes job, Location location, String type, String extra, int tempID) {
         if(tempID == -4469) {
             boolean idSet = false;
-//            int id = -4469;
             while (!idSet) {
                 int t = ThalwyrnResourcesUtils.randomInteger(1, 4469);
                 if (!getTakenIDs().contains(t)) {
@@ -68,7 +66,6 @@ public class ResourceManager {
         ThalwyrnResource resource = new ThalwyrnResource(level, job, location, type, extra, tempID);
         allResources.add(resource);
         spawnResource(resource, location);
-
         return resource;
     }
 
@@ -156,13 +153,11 @@ public class ResourceManager {
     }
 
     public void respawnResource(ThalwyrnResource resource, Player player) {
+        for(Location loc : resource.getTemp()) {
+            loc.getWorld().getBlockAt(loc).getState().update();
+        }
         for(Block block : resource.getInteractBlocks()) {
             player.sendBlockChange(block.getLocation(), block.getBlockData());
-        }
-
-        resource.getHologram().spawnHologram(player);
-        for(ProHologramLine line : resource.getHologram().getLines()) {
-            line.spawnLine(player);
         }
 
     }
@@ -309,8 +304,7 @@ public class ResourceManager {
                     break;
             }
 
-            ThalwyrnResource resource = new ThalwyrnResource(level, job, location, type, extra, Integer.parseInt(id));
-            spawnResource(resource, resource.getLocation());
+            ThalwyrnResource resource = createResource(level, job, location, type, extra, Integer.parseInt(id));
 
             if(config.contains(path + ".xp")) {
                 if(config.isInt(path + ".xp")) {
@@ -335,10 +329,21 @@ public class ResourceManager {
 
             }
 
-
-
         }
 
+    }
+
+    public void cleanup() {
+        Bukkit.getServer().getScheduler().cancelTasks(plugin);
+        ThalwyrnResources.getResourceListener().getInteractedPlayers().clear();
+        for(ThalwyrnResource resource : allResources) {
+            Bukkit.getOnlinePlayers().forEach(player -> {
+                resource.getHologram().despawn(player);
+                respawnResource(resource, player);
+            });
+        }
+        plugin.reloadCustomConfig();
+        plugin.reloadLevelConfig();
     }
 
 }

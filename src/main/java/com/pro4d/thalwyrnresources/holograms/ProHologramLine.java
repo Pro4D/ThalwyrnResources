@@ -47,7 +47,6 @@ public class ProHologramLine {
 
         craftPlayer.getHandle().b.a(spawnPacket);
         craftPlayer.getHandle().b.a(metadataPacket);
-
     }
 
     public void despawn(Player player) {

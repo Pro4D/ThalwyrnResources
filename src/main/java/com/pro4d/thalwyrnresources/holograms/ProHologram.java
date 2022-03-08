@@ -7,6 +7,7 @@ import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
 import net.minecraft.network.protocol.game.PacketPlayOutSpawnEntity;
 import net.minecraft.world.entity.decoration.EntityArmorStand;
 import org.apache.commons.lang.WordUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_18_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer;
@@ -74,6 +75,7 @@ public class ProHologram {
         for(ProHologramLine hologramLine : lines) {
             hologramLine.updateLine();
         }
+
     }
 
     public void despawn(Player player) {

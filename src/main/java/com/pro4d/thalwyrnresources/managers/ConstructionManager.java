@@ -37,14 +37,11 @@ public class ConstructionManager {
     private static final Map<MiningOre, ItemStack> headMap = new HashMap<>();
     //private final Map<List<Block>, Integer> resourceBlockMap = new HashMap<>();
 
-    private String path = null;
+    private String path = "";
     public ConstructionManager(ThalwyrnResources plugin) {
-        if(plugin.isWorldEditEnabled()) {
-            String worldEditPath = plugin.getServer().getPluginManager().getPlugin("WorldEdit").getDataFolder().getAbsolutePath();
-            //Bukkit.broadcastMessage("WE: " + worldEditPath);
+        String worldEditPath = plugin.getServer().getPluginManager().getPlugin("WorldEdit").getDataFolder().getAbsolutePath();
+        path = worldEditPath + "/" + "schematics";
 
-            path = worldEditPath + "/" + "schematics";
-        }
 
         headMap.put(MiningOre.COAL_BLOCK, createSkull("ewogICJ0aW1lc3RhbXAiIDogMTY0MDQ5MjI2NDQyMywKICAicHJvZmlsZUlkIiA6ICIxYWEzNWI4NzAwYWU0MTM5ODIxZjM4NDM0ZGQ5ZGEyNSIsCiAgInByb2ZpbGVOYW1lIiA6ICJQcm80RCIsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS82ZDZhNDdkMzg5Yjc4NTg4YTc1MzBiNmE1MTNhNzEyMmE0YjBjYjA1YTliNGNhODIzNTU2N2E3YTM4OTQ5MTA1IgogICAgfQogIH0KfQ=="));
 

@@ -19,9 +19,13 @@ public class ResourceCommand implements CommandExecutor {
 
     private final ResourceManager resourceManager;
     private final ThalwyrnResources plugin;
+    //private RegionContainer container;
     public ResourceCommand(ThalwyrnResources plugin) {
         this.resourceManager = ThalwyrnResources.getResourceManager();
         this.plugin = plugin;
+//        if(plugin.isWorldGuardEnabled()) {
+//            container = WorldGuard.getInstance().getPlatform().getRegionContainer();
+//        }
         Bukkit.getPluginCommand("resource").setExecutor(this);
     }
 
@@ -32,8 +36,7 @@ public class ResourceCommand implements CommandExecutor {
             return false;
         }
         if(args[0].equals("reload") && args.length == 1) {
-            plugin.reloadCustomConfig();
-            plugin.reloadLevelConfig();
+            resourceManager.cleanup();
             resourceManager.validateConfig();
             sender.sendMessage(ThalwyrnResourcesUtils.formattedColors("&aReloaded configs"));
             return true;
@@ -216,6 +219,52 @@ public class ResourceCommand implements CommandExecutor {
                     }
                 }
                 return true;
+
+                //resource region-place <region-name> <id> <number of resources> <distance between>
+//            case "region-place":
+//                if(!plugin.isWorldGuardEnabled()) {
+//                    player.sendMessage("WorldGuard is not installed, cannot use region features");
+//                    return false;
+//                }
+//                if(args.length == 5) {
+//                    if (!ThalwyrnResourcesUtils.isInt(args[2])) {
+//                        player.sendMessage("Not a valid number");
+//                        return false;
+//                    }
+//                    if (!ThalwyrnResourcesUtils.isInt(args[3])) {
+//                        player.sendMessage("Not a valid number");
+//                        return false;
+//                    }
+//                    if (!ThalwyrnResourcesUtils.isInt(args[4])) {
+//                        player.sendMessage("Not a valid number");
+//                        return false;
+//                    }
+//                    if (!resourceManager.isAResource(Integer.parseInt(args[1]))) {
+//                        player.sendMessage("No resource with that id");
+//                        return false;
+//                    }
+//
+////                    RegionManager manager = container.get(BukkitAdapter.adapt(player.getWorld()));
+////                    if(manager == null) {
+////                        player.sendMessage("Could not find any region data for your current world");
+////                        return false;
+////                    }
+////                    if(manager.getRegion(args[1]) == null) {
+////                        player.sendMessage("Could not find any region with the id: " + args[1] + " in your current world");
+////                        return false;
+////                    }
+//
+//                    //BlockVector3 min = manager.getRegion(args[1]).getMinimumPoint();
+//                    //BlockVector3 max = manager.getRegion(args[1]).getMaximumPoint();
+//
+//                    //Bukkit.broadcastMessage("Min for region: " + args[1] + " = " + min);
+//                    //Bukkit.broadcastMessage("Max for region: " + args[1] + " = " + max);
+//
+//                    //ThalwyrnResource copyFrom = resourceManager.getResource(Integer.parseInt(args[1]));
+//
+//
+//                }
+//                return true;
 
         }
         return false;

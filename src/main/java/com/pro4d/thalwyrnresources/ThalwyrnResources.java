@@ -24,33 +24,38 @@ public final class ThalwyrnResources extends JavaPlugin {
 
     private static ResourceManager resourceManager;
     private static ConstructionManager constructionManager;
-    private File resourceFile;
     private static FileConfiguration resourceConfig;
+    private static ResourceListener resourceListener;
+    private File resourceFile;
 
     private File levelFile;
     private static FileConfiguration levelConfig;
 
-    private boolean worldEditEnabled = false;
-    //private boolean worldGuardEnabled = false;
-
+    private boolean worldGuardEnabled = false;
     private Server server;
 
     @Override
     public void onEnable() {
         // Plugin startup logic
+
+        if(Bukkit.getPluginManager().getPlugin("WorldEdit") == null) {
+            ThalwyrnResourcesUtils.log(Level.SEVERE, ThalwyrnResourcesUtils.formattedColors("&cThis plugin REQUIRES WorldEdit, please install it."));
+            ThalwyrnResourcesUtils.log(Level.SEVERE, ThalwyrnResourcesUtils.formattedColors("&cDisabling plugin..."));
+            getServer().getPluginManager().disablePlugin(this);
+        }
+
         if(Bukkit.getPluginManager().getPlugin("MMOCore") == null) {
             ThalwyrnResourcesUtils.log(Level.SEVERE, ThalwyrnResourcesUtils.formattedColors("&cThis plugin REQUIRES MMOCore, please install it."));
             ThalwyrnResourcesUtils.log(Level.SEVERE, ThalwyrnResourcesUtils.formattedColors("&cDisabling plugin..."));
             getServer().getPluginManager().disablePlugin(this);
         }
 
-//        if(Bukkit.getPluginManager().getPlugin("WorldGuard") == null) {
-//            ThalwyrnResourcesUtils.log(Level.SEVERE, ThalwyrnResourcesUtils.formattedColors("&cWorldGuard is not installed, you will not be able to use region features."));
-//        } else {worldGuardEnabled = true;}
-
-        if(Bukkit.getPluginManager().getPlugin("WorldEdit") == null) {
-            ThalwyrnResourcesUtils.log(Level.SEVERE, ThalwyrnResourcesUtils.formattedColors("&cWorldEdit is not installed, you will not be able to use schematic features."));
-        } else {worldEditEnabled = true;}
+        if(Bukkit.getPluginManager().getPlugin("WorldGuard") == null) {
+            ThalwyrnResourcesUtils.log(Level.WARNING, ThalwyrnResourcesUtils.formattedColors("&cWorldGuard is not installed, you will not be able to use region features."));
+        } else {
+            worldGuardEnabled = true;
+//            ThalwyrnResourcesUtils.log(Level.WARNING, ThalwyrnResourcesUtils.formattedColors("&cV" + WorldGuard.getInstance().getPlatform().getPlatformVersion()));
+        }
 
         createCustomConfig();
         saveCustomConfig();
@@ -62,12 +67,12 @@ public final class ThalwyrnResources extends JavaPlugin {
 
         constructionManager = new ConstructionManager(this);
         resourceManager = new ResourceManager(this);
-
+        resourceListener = new ResourceListener(this);
         server = getServer();
+
 
         new ResourceCommand(this);
         new TabCompletor(this);
-        new ResourceListener(this);
 
         new BukkitRunnable() {
             @Override
@@ -81,9 +86,11 @@ public final class ThalwyrnResources extends JavaPlugin {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
-        reloadCustomConfig();
-        reloadLevelConfig();
-        resourceManager.getAllResources().forEach(resource -> Bukkit.getOnlinePlayers().forEach(player -> resource.getHologram().despawn(player)));
+//        reloadCustomConfig();
+//        reloadLevelConfig();
+//        resourceManager.getAllResources().forEach(resource -> Bukkit.getOnlinePlayers().forEach(player -> resource.getHologram().despawn(player)));
+        resourceManager.cleanup();
+
 
 //        for (Location loc : resourceListener.getBlocksFakeDestroyed().keySet()) {
 //            //        for (Location loc : resourceListener.getBlocksFakeDestroyed().keySet()) {
@@ -141,13 +148,11 @@ public final class ThalwyrnResources extends JavaPlugin {
 
     public static ConstructionManager getConstructionManager() {return constructionManager;}
 
-    public boolean isWorldEditEnabled() {
-        return worldEditEnabled;
-    }
+    public static ResourceListener getResourceListener() {return resourceListener;}
 
-//    public boolean isWorldGuardEnabled() {
-//        return worldGuardEnabled;
-//    }
+    public boolean isWorldGuardEnabled() {
+        return worldGuardEnabled;
+    }
 
     public void saveCustomConfig()
     {
@@ -227,6 +232,7 @@ public final class ThalwyrnResources extends JavaPlugin {
     public BlockData createBlockData(Material mat) {
         return server.createBlockData(mat);
     }
+
 
 //    public boolean isBlockSafe(Block block) {
 //        List<Material> blocked = new ArrayList<>();

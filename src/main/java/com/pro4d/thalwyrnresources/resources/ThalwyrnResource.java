@@ -59,7 +59,7 @@ public class ThalwyrnResource {
         temp = new ArrayList<>();
 
         ThalwyrnResources.getResourceManager().writeToConfig(this);
-        ThalwyrnResources.getResourceManager().getAllResources().add(this);
+        //ThalwyrnResources.getResourceManager().getAllResources().add(this);
 
     }
 
@@ -173,7 +173,8 @@ public class ThalwyrnResource {
         this.xp = xp;
         updateResource();
     }
-
+    //L: 1
+    //R: 6
     public void setJob(JobTypes job) {
         this.job = job;
         updateResource();
