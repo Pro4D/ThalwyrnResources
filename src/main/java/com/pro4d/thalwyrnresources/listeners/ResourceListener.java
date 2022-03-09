@@ -227,7 +227,7 @@ public class ResourceListener implements org.bukkit.event.Listener {
             if(resource.getPlayerRespawnTime().containsKey(player.getUniqueId())) {
                 startTimer(resource, player, resource.getPlayerRespawnTime().get(player.getUniqueId()));
             } else {
-                if(!(resource.getLocation().distanceSquared(player.getLocation()) <= 400)) return;
+                if(!(resource.getLocation().distanceSquared(player.getLocation()) <= 1000)) return;
                 resource.getHologram().spawnHologram(player);
             }
         }
