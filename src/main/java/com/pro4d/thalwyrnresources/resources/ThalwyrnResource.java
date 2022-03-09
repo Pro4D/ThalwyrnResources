@@ -5,6 +5,7 @@ import com.pro4d.thalwyrnresources.enums.JobTypes;
 import com.pro4d.thalwyrnresources.holograms.ProHologram;
 import com.pro4d.thalwyrnresources.holograms.ProHologramLine;
 import com.pro4d.thalwyrnresources.utils.ThalwyrnResourcesUtils;
+import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -201,7 +202,7 @@ public class ThalwyrnResource {
                     if (leftClick.getItemMeta().hasDisplayName()) {
                         getHologram().getLeftClickHologram().setName("Left-Click for " + leftClick.getItemMeta().getDisplayName());
                     } else {
-                        getHologram().getLeftClickHologram().setName("Left-Click for " + ThalwyrnResourcesUtils.formatMessage(leftClick.getType().name()));
+                        getHologram().getLeftClickHologram().setName("Left-Click for " + WordUtils.capitalizeFully(ThalwyrnResourcesUtils.formatMessage(leftClick.getType().name())));
                     }
                 }
             }
@@ -214,10 +215,8 @@ public class ThalwyrnResource {
 
                     if (rightClick.getItemMeta().hasDisplayName()) {
                         getHologram().getRightClickHologram().setName("Right-Click for " + rightClick.getItemMeta().getDisplayName());
-
                     } else {
-                        getHologram().getRightClickHologram().setName("Right-Click for " + ThalwyrnResourcesUtils.formatMessage(rightClick.getType().name()));
-
+                        getHologram().getRightClickHologram().setName("Right-Click for " + WordUtils.capitalizeFully(ThalwyrnResourcesUtils.formatMessage(rightClick.getType().name())));
                     }
                 }
             }

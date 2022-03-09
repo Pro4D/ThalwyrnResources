@@ -10,6 +10,10 @@ import org.bukkit.craftbukkit.v1_18_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 public class ProHologramLine {
 
     private String name;
@@ -18,15 +22,19 @@ public class ProHologramLine {
 
     private int id;
 
+    private final List<UUID> visibleTo;
+
     public ProHologramLine(ProHologram parent, Location lineLocation) {
         parentHologram = parent;
         parent.getLines().add(this);
         location = lineLocation;
+        visibleTo = new ArrayList<>();
 
         name = "Hologram Line";
     }
 
     public void spawnLine(Player player) {
+        if(visibleTo.contains(player.getUniqueId())) return;
         EntityArmorStand armorStand = new EntityArmorStand(((CraftWorld) location.getWorld()).getHandle(), location.getX(), location.getY(), location.getZ());
         armorStand.j(true); //invisible
         armorStand.n(true); //name visible
@@ -47,11 +55,14 @@ public class ProHologramLine {
 
         craftPlayer.getHandle().b.a(spawnPacket);
         craftPlayer.getHandle().b.a(metadataPacket);
+
+        visibleTo.add(player.getUniqueId());
     }
 
     public void despawn(Player player) {
         PacketPlayOutEntityDestroy destroyPacket = new PacketPlayOutEntityDestroy(id);
         ((CraftPlayer) player).getHandle().b.a(destroyPacket);
+        visibleTo.remove(player.getUniqueId());
     }
 
     public void updateLine() {

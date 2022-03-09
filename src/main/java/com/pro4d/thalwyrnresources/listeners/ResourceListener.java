@@ -120,12 +120,20 @@ public class ResourceListener implements org.bukkit.event.Listener {
 
     @EventHandler
     private void moveEvent(PlayerMoveEvent event) {
-
         Player player = event.getPlayer();
+        Location from = event.getFrom();
+        Location to = event.getTo();
+
+        if(from.getBlock() == to.getBlock()) return;
         if(interactedPlayers.contains(player.getUniqueId())) {
-            event.setCancelled(true);
+            if(to.getPitch() >= 20 || to.getYaw() >= 45) event.setCancelled(true);
             //PITCH UP & DOWN
             //YAW SIDE TO SIDE
+        }
+
+        for(ThalwyrnResource resource : resourceManager.getAllResources()) {
+            if(!(resource.getLocation().distanceSquared(to) <= 1500)) return;
+            resource.getHologram().spawnHologram(player);
         }
 
 //        if(cooldownPlayers.containsKey(player.getUniqueId())) {
@@ -217,13 +225,10 @@ public class ResourceListener implements org.bukkit.event.Listener {
         Player player = event.getPlayer();
         for(ThalwyrnResource resource : resourceManager.getAllResources()) {
             if(resource.getPlayerRespawnTime().containsKey(player.getUniqueId())) {
-
                 startTimer(resource, player, resource.getPlayerRespawnTime().get(player.getUniqueId()));
-
             } else {
-                if(resource.getLocation().distanceSquared(player.getLocation()) <= 800) {
-                    resource.getHologram().spawnHologram(player);
-                }
+                if(!(resource.getLocation().distanceSquared(player.getLocation()) <= 400)) return;
+                resource.getHologram().spawnHologram(player);
             }
         }
     }

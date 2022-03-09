@@ -7,7 +7,6 @@ import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
 import net.minecraft.network.protocol.game.PacketPlayOutSpawnEntity;
 import net.minecraft.world.entity.decoration.EntityArmorStand;
 import org.apache.commons.lang.WordUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_18_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer;
@@ -15,6 +14,7 @@ import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @SuppressWarnings("ConstantConditions")
 public class ProHologram {
@@ -32,11 +32,14 @@ public class ProHologram {
     private ProHologramLine rightClickHologram;
     private final ProHologramLine line;
 
+    private final List<UUID> visibleTo;
+
     public ProHologram(ThalwyrnResource resource, Location loc) {
         location = loc.clone().add(0, 1.2, 0);
 
         parentResource = resource;
         lines = new ArrayList<>();
+        visibleTo = new ArrayList<>();
 
         name = "Hologram";
         resource.setHologram(this);
@@ -46,6 +49,7 @@ public class ProHologram {
     }
 
     public void spawnHologram(Player player) {
+        if(visibleTo.contains(player.getUniqueId())) return;
         EntityArmorStand armorStand = new EntityArmorStand(((CraftWorld) location.getWorld()).getHandle(), location.getX(), location.getY(), location.getZ());
         armorStand.j(true); //invisible
 
@@ -76,6 +80,7 @@ public class ProHologram {
             hologramLine.updateLine();
         }
 
+        visibleTo.add(player.getUniqueId());
     }
 
     public void despawn(Player player) {
@@ -84,6 +89,7 @@ public class ProHologram {
         if(!(lines.isEmpty())) {
             lines.forEach(hologramLine -> hologramLine.despawn(player));
         }
+        visibleTo.remove(player.getUniqueId());
     }
 
     public void updateHologram(ThalwyrnResource resource) {
@@ -135,8 +141,11 @@ public class ProHologram {
         return parentResource;
     }
 
+    public List<UUID> getVisibleTo() {
+        return visibleTo;
+    }
 
-//        switch (job) {
+    //        switch (job) {
 //            case WOODCUTTING:
 //                armorStand.setCustomName(IChatBaseComponent.a(WordUtils.capitalize(job.getJobName())));
 //                break;
