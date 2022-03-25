@@ -16,5 +16,11 @@ public enum MiningOre {
         return this.toString();
     }
 
+    public static MiningOre getMatching(String s) {
+        for(MiningOre ore : MiningOre.values()) {
+            if(ore.getOreName().equalsIgnoreCase(s)) return ore;
+        }
+        return null;
+    }
 
 }

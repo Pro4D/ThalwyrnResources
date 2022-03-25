@@ -4,11 +4,13 @@ import com.pro4d.thalwyrnresources.ThalwyrnResources;
 import com.pro4d.thalwyrnresources.enums.JobTypes;
 import com.pro4d.thalwyrnresources.holograms.ProHologram;
 import com.pro4d.thalwyrnresources.resources.ThalwyrnResource;
-import com.pro4d.thalwyrnresources.utils.ThalwyrnResourcesUtils;
+import com.pro4d.thalwyrnresources.utils.TWUtils;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.math.Vector3;
 import com.sk89q.worldedit.regions.Region;
+import net.Indyuce.mmocore.api.quest.trigger.CommandTrigger;
+import net.Indyuce.mmocore.api.quest.trigger.Trigger;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -21,30 +23,31 @@ import org.bukkit.util.Vector;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
-@SuppressWarnings({"CommentedOutCode", "SwitchStatementWithTooFewBranches", "ConstantConditions"})
 public class ResourceManager {
 
     private final List<ThalwyrnResource> allResources;
     private final List<Integer> takenIDs;
-    public static List<String> enumJobNames;
+    private final List<String> enumJobNames;
+
     private final ConstructionManager constructionManager;
+
     private final Configuration config;
-    static ThalwyrnResources plugin;
-    private final DecimalFormat df;
     private final String configPath = "Resources.";
+    private final ThalwyrnResources plugin;
 
     public ResourceManager(ThalwyrnResources plugin) {
-        ResourceManager.plugin = plugin;
+        this.plugin = plugin;
 
-        constructionManager = ThalwyrnResources.getConstructionManager();
+        constructionManager = plugin.getConstructionManager();
         allResources = new ArrayList<>();
         enumJobNames = new ArrayList<>();
         takenIDs = new ArrayList<>();
-        config = ThalwyrnResources.getResourceConfig();
 
-        df = new DecimalFormat("0.00");
+        config = plugin.getResourceConfig();
+
         for (JobTypes jobTypes : JobTypes.values()) {
             enumJobNames.add(jobTypes.getJobName());
         }
@@ -55,7 +58,7 @@ public class ResourceManager {
         if(tempID == -4469) {
             boolean idSet = false;
             while (!idSet) {
-                int t = ThalwyrnResourcesUtils.randomInteger(1, 4469);
+                int t = TWUtils.randomInteger(1, 4469);
                 if (!getTakenIDs().contains(t)) {
                     tempID = t;
                     idSet = true;
@@ -70,7 +73,6 @@ public class ResourceManager {
     }
 
     //keep track of each MMOCore job
-
 
     public boolean isAResource(int id) {
         for(ThalwyrnResource resource : allResources) {
@@ -162,6 +164,21 @@ public class ResourceManager {
 
     }
 
+    public ThalwyrnResource copyResource(ThalwyrnResource resource, Location location) {
+        ThalwyrnResource copied = createResource(resource.getLevel(), resource.getJob(), location, resource.getType(), resource.getExtra(), -4469);
+        if(!resource.getTriggers().isEmpty()) {
+            copied.getTriggers().addAll(resource.getTriggers());
+        }
+        if(resource.getLeftClick() != null) {
+            copied.setLeftClick(resource.getLeftClick());
+        }
+        if(resource.getRightClick() != null) {
+            copied.setRightClick(resource.getRightClick());
+        }
+
+        return copied;
+    }
+
     public ThalwyrnResource getResource(int id) {
         for(ThalwyrnResource resource : allResources) {
             if(resource.getId() == id) {
@@ -179,6 +196,10 @@ public class ResourceManager {
         return takenIDs;
     }
 
+    public List<String> getEnumJobNames() {
+        return enumJobNames;
+    }
+
     public void writeToConfig(ThalwyrnResource resource) {
         if(!config.isConfigurationSection("Resources")) config.createSection("Resources");
         String path = configPath + resource.getId();
@@ -186,6 +207,7 @@ public class ResourceManager {
 
         config.set(locationPath + ".world", resource.getLocation().getWorld().getName());
 
+        DecimalFormat df = new DecimalFormat("0.00");
         config.set(locationPath + ".x", Double.parseDouble(df.format(resource.getLocation().getX())));
         config.set(locationPath + ".y", Double.parseDouble(df.format(resource.getLocation().getY())));
         config.set(locationPath + ".z", Double.parseDouble(df.format(resource.getLocation().getZ())));
@@ -219,22 +241,30 @@ public class ResourceManager {
             }
         }
 
+        //Resources:
+        //  '1234':
+        //    triggers:
+        //    - ''
+//        if(config.isList(path + ".triggers")) {
+//            List<Trigger> triggerList = (List<Trigger>) config.getList(path + ".triggers");
+//        }
+
 //        //FIX BELOW
 //        if(resource.getHologram() != null) {
 //            config.set(resourceSection + ".hologram-location.x", resource.getHologram().getLocation().getBlockX());
 //            config.set(resourceSection + ".hologram-location.y", resource.getHologram().getLocation().getBlockY());
 //            config.set(resourceSection + ".hologram-location.z", resource.getHologram().getLocation().getBlockZ());
 //        }
-        plugin.saveCustomConfig();
+        plugin.saveResourceConfig();
     }
 
     public void delete(ThalwyrnResource resource) {
         if(!config.isConfigurationSection("Resources.")) return;
         if(config.contains(configPath + resource.getId())) {
             config.set(configPath + resource.getId(), null);
-            plugin.saveCustomConfig();
+            plugin.saveResourceConfig();
         }
-
+        allResources.remove(resource);
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -242,7 +272,7 @@ public class ResourceManager {
         if(!config.isConfigurationSection(configPath)) return;
         allResources.clear();
         for(String id : config.getConfigurationSection(configPath).getKeys(false)) {
-            if(!ThalwyrnResourcesUtils.isInt(id)) return;
+            if(!TWUtils.isInt(id)) return;
 
             String path = configPath + id;
 
@@ -288,7 +318,7 @@ public class ResourceManager {
 
             JobTypes job = null;
             if(config.contains(path + ".jobs")) {
-                job = JobTypes.valueOf(config.getString(path + ".jobs"));
+                job = JobTypes.getMatching(config.getString(path + ".jobs"));
             }
 
             String type = null;
@@ -335,15 +365,24 @@ public class ResourceManager {
 
     public void cleanup() {
         Bukkit.getServer().getScheduler().cancelTasks(plugin);
-        ThalwyrnResources.getResourceListener().getInteractedPlayers().clear();
+        plugin.getResourceListener().getInteractedPlayers().clear();
+
         for(ThalwyrnResource resource : allResources) {
             Bukkit.getOnlinePlayers().forEach(player -> {
                 resource.getHologram().despawn(player);
                 respawnResource(resource, player);
             });
+            resource.delete();
         }
-        plugin.reloadCustomConfig();
-        plugin.reloadLevelConfig();
+        allResources.clear();
+
+        plugin.reloadResourceConfig();
+        plugin.reloadOptionsConfig();
+        plugin.reloadItemGroupConfig();
     }
+
+//    public void validateHologramConfig() {}
+
+
 
 }

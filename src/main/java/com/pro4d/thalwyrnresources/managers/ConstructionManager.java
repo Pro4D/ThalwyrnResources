@@ -6,6 +6,7 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.pro4d.thalwyrnresources.ThalwyrnResources;
 import com.pro4d.thalwyrnresources.enums.MiningOre;
+import com.pro4d.thalwyrnresources.utils.TWUtils;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
@@ -19,7 +20,6 @@ import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import org.apache.commons.codec.binary.Base64;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -32,12 +32,13 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
 
 public class ConstructionManager {
     private static final Map<MiningOre, ItemStack> headMap = new HashMap<>();
     //private final Map<List<Block>, Integer> resourceBlockMap = new HashMap<>();
 
-    private String path = "";
+    private final String path;
     public ConstructionManager(ThalwyrnResources plugin) {
         String worldEditPath = plugin.getServer().getPluginManager().getPlugin("WorldEdit").getDataFolder().getAbsolutePath();
         path = worldEditPath + "/" + "schematics";
@@ -140,7 +141,7 @@ public class ConstructionManager {
                     editSession.close();
 
                 } catch (WorldEditException e) {
-                    Bukkit.broadcastMessage("Error with world edit");
+                    TWUtils.log(Level.SEVERE, TWUtils.formattedColors("&cError with world edit"));
                     e.printStackTrace();
                 }
             } catch (Exception e) {
@@ -172,7 +173,7 @@ public class ConstructionManager {
 //        return resourceBlockMap;
 //    }
 
-    //    public ItemStack createCustomSkull(String texture) {
+//    public ItemStack createCustomSkull(String texture) {
 //        texture = "http://textures.minecraft.net/texture/" + texture;
 //
 //        ItemStack skull = new ItemStack(Material.PLAYER_HEAD);

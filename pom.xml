@@ -6,7 +6,7 @@
 
     <groupId>com.pro4d</groupId>
     <artifactId>ThalwyrnResources</artifactId>
-    <version>2.5.2</version>
+    <version>3.0.0</version>
     <packaging>jar</packaging>
 
     <name>ThalwyrnResources</name>

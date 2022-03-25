@@ -4,7 +4,7 @@ main: com.pro4d.thalwyrnresources.ThalwyrnResources
 api-version: 1.18
 load: STARTUP
 depend: [ MMOCore ]
-softdepend: [ MMOItems, WorldEdit, WorldGuard ]
+softdepend: [ MMOItems, WorldGuard, WorldEdit ]
 authors: [ Pro4D ]
 description: Spawn and configure resource deposits! 
 

@@ -1,10 +1,11 @@
 package com.pro4d.thalwyrnresources.listeners;
 
 import com.pro4d.thalwyrnresources.ThalwyrnResources;
+import com.pro4d.thalwyrnresources.enums.JobTypes;
 import com.pro4d.thalwyrnresources.holograms.ProHologramLine;
 import com.pro4d.thalwyrnresources.managers.ResourceManager;
 import com.pro4d.thalwyrnresources.resources.ThalwyrnResource;
-import com.pro4d.thalwyrnresources.utils.ThalwyrnResourcesUtils;
+import com.pro4d.thalwyrnresources.utils.TWUtils;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.math.BlockVector3;
@@ -54,7 +55,7 @@ public class ResourceListener implements org.bukkit.event.Listener {
 
     @EventHandler
     private void detectClick(PlayerInteractEvent event) {
-        if (!(event.hasBlock())) return;
+        if(!(event.hasBlock())) return;
         if(event.getHand() != EquipmentSlot.HAND) return;
 
         Block block = event.getClickedBlock();
@@ -64,7 +65,6 @@ public class ResourceListener implements org.bukkit.event.Listener {
             if (resource.getInteractBlocks() != null) {
                 List<Block> listOfBlock = resource.getInteractBlocks();
                 if (listOfBlock.contains(block)) {
-
                     if(resource.getPlayerRespawnTime().containsKey(player.getUniqueId())) {
                         player.sendBlockChange(block.getLocation(), block.getBlockData());
                         event.setCancelled(true);
@@ -72,17 +72,28 @@ public class ResourceListener implements org.bukkit.event.Listener {
                     }
 
                     PlayerData playerData = PlayerData.get(player.getUniqueId());
-                    Profession profession = ThalwyrnResourcesUtils.convertToMMOCoreJob(resource.getJob().getJobName());
+                    Profession profession = TWUtils.convertToMMOCoreJob(resource.getJob().getJobName());
                     assert profession != null;
 
                     if(playerData.getCollectionSkills().getLevel(MMOCore.plugin.professionManager.get(profession.getId())) < resource.getLevel()) {
                         player.sendMessage("You do not meet the requirements to collect this resource.");
+                        event.setCancelled(true);
                         return;
+                    }
+
+                    if(event.hasItem()) {
+                        if(plugin.getItemGroups().getItemGroups().containsKey(resource.getJob())) {
+                            if (!plugin.getItemGroups().getItemGroups().get(JobTypes.getMatching(profession.getName())).get(resource.getLevel()).contains(event.getItem())) {
+                                player.sendMessage(TWUtils.formattedColors("&cIncorrect item used to collect this resource!"));
+                                event.setCancelled(true);
+                                return;
+                            }
+                        }
                     }
 
                     if (!(interactedPlayers.contains(player.getUniqueId()))) interactedPlayers.add(player.getUniqueId());
 
-                    decreaseHealth(resource, player);
+                    decreaseHealth(resource, event.getAction(), player);
 
                     ItemStack item = null;
                     if (event.getAction().equals(Action.LEFT_CLICK_BLOCK)) {
@@ -109,7 +120,7 @@ public class ResourceListener implements org.bukkit.event.Listener {
 
                     if (resource.getXp() != 0) {
                         playerData.getCollectionSkills().giveExperience(profession, resource.getXp(), EXPSource.OTHER);
-                        player.sendMessage(ThalwyrnResourcesUtils.formattedColors("&aYou have been given " + resource.getXp() + " in " + profession.getName()));
+                        player.sendMessage(TWUtils.formattedColors("&aYou have been given " + resource.getXp() + " in " + profession.getName()));
                     }
                     event.setCancelled(true);
                 }
@@ -132,92 +143,10 @@ public class ResourceListener implements org.bukkit.event.Listener {
         }
 
         for(ThalwyrnResource resource : resourceManager.getAllResources()) {
-            if(!(resource.getLocation().distanceSquared(to) <= 1500)) return;
-            resource.getHologram().spawnHologram(player);
+            if(resource.getLocation().distanceSquared(to) <= 1500) {
+                resource.getHologram().spawnHologram(player);
+            }
         }
-
-//        if(cooldownPlayers.containsKey(player.getUniqueId())) {
-//            ThalwyrnResource resource = cooldownPlayers.get(player.getUniqueId());
-//            Location to = event.getTo();
-//            Location from = event.getFrom();
-//            assert to != null;
-//            World world = to.getWorld();
-//            assert world != null;
-//
-//            float x = Float.parseFloat(df.format(to.getX() - from.getX()));
-//            float y = Float.parseFloat(df.format(to.getY() - from.getY()));
-//            float z = Float.parseFloat(df.format(to.getZ() - from.getZ()));
-//
-//            if(Math.abs(x) > y && Math.abs(x) > z) {
-//                //player.sendMessage("X is the greatest");
-//                if(x > 0) {
-//                    Location loc = new Location(world, to.getBlockX() + 1, to.getBlockY(), to.getBlockZ());
-//                    Block b = world.getBlockAt(loc);
-//                    if(isGhostBlock(resource.getId(), b.getLocation())) {
-//                        if (b.getType() != Material.AIR) {
-//                            Bukkit.broadcastMessage("X: " + world.getBlockAt(new Location(world, to.getBlockX() + 1, to.getBlockY(), to.getBlockZ())).getType().name());
-//                            replaceAndStore(b, player);
-//                        }
-//                    }
-//
-//                } else {
-//                    Location loc = new Location(world, to.getBlockX() - 1, to.getBlockY(), to.getBlockZ());
-//                    Block b = world.getBlockAt(loc);
-//                    if(isGhostBlock(resource.getId(), b.getLocation())) {
-//                        if (b.getType() != Material.AIR) {
-//                            replaceAndStore(b, player);
-//                        }
-//                    }
-//
-//                }
-//
-//            } else if(Math.abs(z) > Math.abs(x) && Math.abs(z) > Math.abs(y)) {
-//                //player.sendMessage("Z is the greatest");
-//                if(z > 0 ) {
-//                    Location loc = new Location(world, to.getBlockX(), to.getBlockY(), to.getBlockZ() + 1);
-//                    Block b = world.getBlockAt(loc);
-//                    if(isGhostBlock(resource.getId(), b.getLocation())) {
-//                        if (b.getType() != Material.AIR) {
-//                            replaceAndStore(b, player);
-//                        }
-//                    }
-//
-//                } else {
-//                    Location loc = new Location(world, to.getBlockX(), to.getBlockY(), to.getBlockZ() - 1);
-//                    Block b = world.getBlockAt(loc);
-//                    if(isGhostBlock(resource.getId(), b.getLocation())) {
-//                        if (b.getType() != Material.AIR) {
-//                            replaceAndStore(b, player);
-//                        }
-//                    }
-//                }
-//
-//            } else if(Math.abs(y) > Math.abs(x) && Math.abs(y) > Math.abs(z)) {
-//                //player.sendMessage("Y is the greatest");
-//                Location loc = new Location(world, to.getBlockX(), to.getBlockY() - 1, to.getBlockZ());
-//                Block b = world.getBlockAt(loc);
-//                if(isGhostBlock(resource.getId(), b.getLocation())) {
-//                    if (b.getType() != Material.AIR) {
-//                        replaceAndStore(b, player);
-//                    }
-//                }
-//            }
-//
-//        }
-//
-//        if(event.getFrom().getBlockX() != event.getTo().getBlockX() && event.getFrom().getBlockY() != event.getTo().getBlockY() && event.getFrom().getBlockZ() != event.getTo().getBlockZ()) {
-//            if (playersWhoDeletedBlocks.contains(event.getPlayer().getUniqueId())) {
-//                Location from = new Location(event.getFrom().getWorld(), event.getFrom().getBlockX(), event.getFrom().getBlockY(), event.getFrom().getBlockZ());
-//                //Bukkit.broadcastMessage("X: " + from.getX() + " Y: " + from.getY() + " Z: " + from.getZ());
-//
-//                if (blocksFakeDestroyed.containsKey(from)) {
-//                    from.getWorld().setBlockData(from, blocksFakeDestroyed.get(from));
-//                    playersWhoDeletedBlocks.remove(player.getUniqueId());
-//                    blocksFakeDestroyed.remove(from);
-//                }
-//            }
-//        }
-
     }
 
     @EventHandler
@@ -227,8 +156,9 @@ public class ResourceListener implements org.bukkit.event.Listener {
             if(resource.getPlayerRespawnTime().containsKey(player.getUniqueId())) {
                 startTimer(resource, player, resource.getPlayerRespawnTime().get(player.getUniqueId()));
             } else {
-                if(!(resource.getLocation().distanceSquared(player.getLocation()) <= 1000)) return;
-                resource.getHologram().spawnHologram(player);
+                if(resource.getLocation().distanceSquared(player.getLocation()) <= 1000) {
+                    resource.getHologram().spawnHologram(player);
+                }
             }
         }
     }
@@ -245,21 +175,21 @@ public class ResourceListener implements org.bukkit.event.Listener {
     }
 
 
-    private void decreaseHealth(ThalwyrnResource resource, Player player) {
-        int respawnTime = ThalwyrnResources.getLevelConfig().getInt("respawn-time");
+    private void decreaseHealth(ThalwyrnResource resource, Action action, Player player) {
+        int respawnTime = ThalwyrnResources.getOptionsConfig().getInt("respawn-time");
         EntityPlayer entityPlayer = ((CraftPlayer) player).getHandle();
 
         new BukkitRunnable() {
-            int timeLeft = resource.getHealth() / 100;
+            int time = resource.getHealth();
 
             @Override
             public void run() {
 
-                if(timeLeft != 0) {
+                if(time != 0) {
                     PacketPlayOutAnimation armSwingPacket = new PacketPlayOutAnimation(entityPlayer, 0);
                     entityPlayer.b.a(armSwingPacket);
                     resource.getHologram().getLines().forEach(line -> line.despawn(player));
-                    timeLeft--;
+                    time--;
 
                     //resource.getHologram().getLines().get(2).despawn(player);
                     //resource.getHologram().getLines().get(2).setVariable("[ " + builder + " ]");
@@ -270,11 +200,10 @@ public class ResourceListener implements org.bukkit.event.Listener {
 
                     resource.getPlayerRespawnTime().put(player.getUniqueId(), respawnTime);
                     startTimer(resource, player, resource.getPlayerRespawnTime().get(player.getUniqueId()));
-
                     cancel();
                 }
             }
-        }.runTaskTimer(plugin, 0, 10);
+        }.runTaskTimer(plugin, 0, 20L);
 
 
     }
@@ -282,7 +211,7 @@ public class ResourceListener implements org.bukkit.event.Listener {
 
     private void replaceBlocks(ThalwyrnResource resource, Player player) {
         resource.getHologram().despawn(player);
-        Clipboard clipboard = ThalwyrnResources.getConstructionManager().getClipboard(resource.getExtra());
+        Clipboard clipboard = plugin.getConstructionManager().getClipboard(resource.getExtra());
         Region region = clipboard.getRegion();
 
         BlockVector3 origin = clipboard.getOrigin();
@@ -341,25 +270,5 @@ public class ResourceListener implements org.bukkit.event.Listener {
     public List<UUID> getInteractedPlayers() {
         return interactedPlayers;
     }
-
-    //    private void replaceAndStore(Block block, Player player) {
-//        Location bLoc = new Location(block.getLocation().getWorld(), block.getX(), block.getY(), block.getZ());
-//        //blocksFakeDestroyed.put(bLoc, block.getBlockData());
-//        //playersWhoDeletedBlocks.add(player.getUniqueId());
-//        block.setType(Material.AIR);
-//    }
-
-//    private boolean isGhostBlock(int id, Location toCheck) {
-//        if(!resourceManager.isAResource(id)) return false;
-//        ThalwyrnResource resource = resourceManager.getResource(id);
-//        if(!resource.getJob().equals(JobTypes.WOODCUTTING)) return false;
-//        return resource.getGhostBlocks().contains(toCheck);
-//    }
-
-//    public Map<Location, BlockData> getBlocksFakeDestroyed() {
-//        return blocksFakeDestroyed;
-//    }
-
-
 
 }

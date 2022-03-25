@@ -1,0 +1,11 @@
+Holograms:
+  Normal: '&f[&bTree Name here&f]'
+  Left-Click: '&f[Left-Click for %item%]'
+  Right-Click: '&f[Right-Click for %item%]'
+  In-Progress:
+    100: '&c||||||||||'
+    80: '&c||||||||'
+    60: '&c||||||'
+    40: '&c||||'
+    20: '&c||'
+  Complete-Message: '&4[Complete! - %XP_Given%]'

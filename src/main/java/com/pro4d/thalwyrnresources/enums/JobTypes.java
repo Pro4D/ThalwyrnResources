@@ -14,9 +14,9 @@ public enum JobTypes {
         return this.toString();
     }
 
-    public JobTypes getMatching(String s) {
+    public static JobTypes getMatching(String s) {
         for(JobTypes jobTypes : JobTypes.values()) {
-            if(jobTypes.getJobName().equals(s)) return jobTypes;
+            if(jobTypes.getJobName().equalsIgnoreCase(s)) return jobTypes;
         }
         return null;
     }

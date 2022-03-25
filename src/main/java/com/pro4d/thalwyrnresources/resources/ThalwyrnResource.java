@@ -4,7 +4,8 @@ import com.pro4d.thalwyrnresources.ThalwyrnResources;
 import com.pro4d.thalwyrnresources.enums.JobTypes;
 import com.pro4d.thalwyrnresources.holograms.ProHologram;
 import com.pro4d.thalwyrnresources.holograms.ProHologramLine;
-import com.pro4d.thalwyrnresources.utils.ThalwyrnResourcesUtils;
+import com.pro4d.thalwyrnresources.utils.TWUtils;
+import net.Indyuce.mmocore.api.quest.trigger.Trigger;
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -20,7 +21,7 @@ public class ThalwyrnResource {
     private final int id;
 
     private int level;
-    private final int health;
+    private int health;
     private int xp;
     private String type;
     @Nullable private final String extra;
@@ -35,16 +36,21 @@ public class ThalwyrnResource {
     private final List<Block> interactBlocks;
 
     List<Location> temp;
+    List<Trigger> triggers;
 
     public ThalwyrnResource(int level, JobTypes job, Location location, String type, @Nullable String extra, int id) {
         this.level = level;
 
-        if(ThalwyrnResources.getLevelConfig().contains(String.valueOf(level))) {
-            this.health = ThalwyrnResources.getLevelConfig().getInt(String.valueOf(level));
+        if(ThalwyrnResources.getOptionsConfig().contains(String.valueOf(level))) {
+            this.health = ThalwyrnResources.getOptionsConfig().getInt(String.valueOf(level));
         } else {
+            double h = level * .6;
+            if(level < 50) {
+                this.health = (int) Math.round(level - h);
+            } else {
+                this.health = (int) Math.round((level - h) * .85);
+            }
 
-            this.health = level * 100;
-            //sender.sendMessage("levels.yml does not contain a value for level: " + level + ", automatically set health to 100 * level.");
         }
 
         this.xp = 0;
@@ -58,9 +64,8 @@ public class ThalwyrnResource {
         playerRespawnTime = new HashMap<>();
         interactBlocks = new ArrayList<>();
         temp = new ArrayList<>();
-
+        triggers = new ArrayList<>();
         ThalwyrnResources.getResourceManager().writeToConfig(this);
-        //ThalwyrnResources.getResourceManager().getAllResources().add(this);
 
     }
 
@@ -117,37 +122,15 @@ public class ThalwyrnResource {
         return temp;
     }
 
+    public List<Trigger> getTriggers() {
+        return triggers;
+    }
+
     public void delete() {
-        ThalwyrnResources.getResourceManager().delete(this);
+        //ThalwyrnResources.getResourceManager().delete(this);
         getInteractBlocks().forEach(block -> block.setType(Material.AIR));
         Bukkit.getOnlinePlayers().forEach(player -> getHologram().despawn(player));
     }
-
-//    public void tempMethod() {
-//        Clipboard clipboard = ThalwyrnResources.getConstructionManager().getClipboard(getExtra());
-//        Region region = clipboard.getRegion();
-//
-//        BlockVector3 origin = clipboard.getOrigin();
-//        Location resourceLoc = getLocation();
-//        Vector3 resourceVector = Vector3.at(resourceLoc.getBlockX(), resourceLoc.getBlockY(), resourceLoc.getBlockZ());
-//
-//        List<Location> schematicOne = new ArrayList<>();
-//
-//        for (Block block : getBlocks()) {
-//            schematicOne.add(block.getLocation());
-//        }
-//
-//        for(BlockVector3 v : region) {
-//            Vector3 distance = origin.subtract(v).multiply(-1).toVector3();
-//            Location loc = new Location(resourceLoc.getWorld(), resourceVector.getX() + distance.getX(), resourceVector.getY() + distance.getY(),resourceVector.getZ() + distance.getZ());
-//
-//            if(!schematicOne.contains(loc)) {
-//                ghostBlocks.add(loc);
-//            }
-//
-//        }
-//    }
-
 
     public void setType(String type) {
         this.type = type;
@@ -174,10 +157,14 @@ public class ThalwyrnResource {
         this.xp = xp;
         updateResource();
     }
-    //L: 1
-    //R: 6
+
     public void setJob(JobTypes job) {
         this.job = job;
+        updateResource();
+    }
+
+    public void setHealth(int health) {
+        this.health = health;
         updateResource();
     }
 
@@ -202,7 +189,7 @@ public class ThalwyrnResource {
                     if (leftClick.getItemMeta().hasDisplayName()) {
                         getHologram().getLeftClickHologram().setName("Left-Click for " + leftClick.getItemMeta().getDisplayName());
                     } else {
-                        getHologram().getLeftClickHologram().setName("Left-Click for " + WordUtils.capitalizeFully(ThalwyrnResourcesUtils.formatMessage(leftClick.getType().name())));
+                        getHologram().getLeftClickHologram().setName("Left-Click for " + WordUtils.capitalizeFully(TWUtils.formatMessage(leftClick.getType().name())));
                     }
                 }
             }
@@ -216,7 +203,7 @@ public class ThalwyrnResource {
                     if (rightClick.getItemMeta().hasDisplayName()) {
                         getHologram().getRightClickHologram().setName("Right-Click for " + rightClick.getItemMeta().getDisplayName());
                     } else {
-                        getHologram().getRightClickHologram().setName("Right-Click for " + WordUtils.capitalizeFully(ThalwyrnResourcesUtils.formatMessage(rightClick.getType().name())));
+                        getHologram().getRightClickHologram().setName("Right-Click for " + WordUtils.capitalizeFully(TWUtils.formatMessage(rightClick.getType().name())));
                     }
                 }
             }

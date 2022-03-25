@@ -13,8 +13,10 @@ import java.util.List;
 
 public class TabCompletor implements TabCompleter {
 
+    private final ThalwyrnResources plugin;
     public TabCompletor(ThalwyrnResources resources) {
         resources.getCommand("resource").setTabCompleter(this);
+        plugin = resources;
     }
 
 
@@ -33,6 +35,11 @@ public class TabCompletor implements TabCompleter {
                 tabList.add("edit");
                 tabList.add("place");
                 tabList.add("copy");
+                tabList.add("help");
+                if(plugin.isWorldGuardEnabled()) {
+                    tabList.add("region-place");
+                }
+
                 break;
             case 2:
                 if(strings[0].equals("delete") || strings[0].equals("edit") || strings[0].equals("copy")) {
@@ -40,6 +47,9 @@ public class TabCompletor implements TabCompleter {
                 }
                 if(strings[0].equals("place")) {
                     tabList.add("<level>");
+                }
+                if(strings[0].equals("region-place")) {
+                    tabList.add("<region-name>");
                 }
                 break;
             case 3:
@@ -54,6 +64,9 @@ public class TabCompletor implements TabCompleter {
                     tabList.add("job");
                     tabList.add("left-click");
                     tabList.add("right-click");
+                }
+                if(strings[0].equals("region-place")) {
+                    tabList.add("<id>");
                 }
                 break;
             case 4:
@@ -70,13 +83,17 @@ public class TabCompletor implements TabCompleter {
                                 }
                                 break;
                         }
+                        break;
                     case "place":
                         switch(strings[2]) {
                             case "woodcutting":
                                 tabList.add("schematic-1");
                                 break;
                         }
-
+                        break;
+                    case "region-place":
+                        tabList.add("<resource-count>");
+                        break;
                 }
                 break;
                 //FIX SCHEMATIC AUTOCOMPLETE
@@ -88,6 +105,9 @@ public class TabCompletor implements TabCompleter {
                         if(strings[2].equals("woodcutting")) {
                             tabList.add("schematic-2");
                         }
+                        break;
+                    case "region-place":
+                        tabList.add("<distance>");
                         break;
                 }
                 break;
