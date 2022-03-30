@@ -6,7 +6,6 @@ import com.pro4d.thalwyrnresources.holograms.ProHologram;
 import com.pro4d.thalwyrnresources.holograms.ProHologramLine;
 import com.pro4d.thalwyrnresources.utils.TWUtils;
 import net.Indyuce.mmocore.api.quest.trigger.Trigger;
-import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -186,11 +185,13 @@ public class ThalwyrnResource {
                     Location loc = new Location(getHologram().getLocation().getWorld(), getHologram().getLocation().getX(), getHologram().getLocation().getY() - .7, getHologram().getLocation().getZ());
                     getHologram().getLeftClickHologram().setLocation(loc);
 
-                    if (leftClick.getItemMeta().hasDisplayName()) {
-                        getHologram().getLeftClickHologram().setName("Left-Click for " + leftClick.getItemMeta().getDisplayName());
-                    } else {
-                        getHologram().getLeftClickHologram().setName("Left-Click for " + WordUtils.capitalizeFully(TWUtils.formatMessage(leftClick.getType().name())));
-                    }
+                    String itemName = TWUtils.itemStackName(leftClick);
+//                    if (leftClick.getItemMeta().hasDisplayName()) {
+//                        getHologram().getLeftClickHologram().setName("Left-Click for " + leftClick.getItemMeta().getDisplayName());
+//                    } else {
+//                        getHologram().getLeftClickHologram().setName("Left-Click for " + WordUtils.capitalizeFully(TWUtils.formatMessage(leftClick.getType().name())));
+//                    }
+                    getHologram().getLeftClickHologram().setName("Left-Click for " + itemName);
                 }
             }
 
@@ -200,11 +201,13 @@ public class ThalwyrnResource {
                     Location loc = new Location(getHologram().getLocation().getWorld(), getHologram().getLocation().getX(), getHologram().getLocation().getY() - .952, getHologram().getLocation().getZ());
                     getHologram().getRightClickHologram().setLocation(loc);
 
-                    if (rightClick.getItemMeta().hasDisplayName()) {
-                        getHologram().getRightClickHologram().setName("Right-Click for " + rightClick.getItemMeta().getDisplayName());
-                    } else {
-                        getHologram().getRightClickHologram().setName("Right-Click for " + WordUtils.capitalizeFully(TWUtils.formatMessage(rightClick.getType().name())));
-                    }
+                    String itemName = TWUtils.itemStackName(rightClick);
+//                    if (rightClick.getItemMeta().hasDisplayName()) {
+//                        getHologram().getRightClickHologram().setName("Right-Click for " + rightClick.getItemMeta().getDisplayName());
+//                    } else {
+//                        getHologram().getRightClickHologram().setName("Right-Click for " + WordUtils.capitalizeFully(TWUtils.formatMessage(rightClick.getType().name())));
+//                    }
+                    getHologram().getRightClickHologram().setName("Right-Click for " + itemName);
                 }
             }
 

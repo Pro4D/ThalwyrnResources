@@ -13,6 +13,7 @@ import com.sk89q.worldedit.math.Vector3;
 import com.sk89q.worldedit.regions.Region;
 import net.Indyuce.mmocore.MMOCore;
 import net.Indyuce.mmocore.api.player.PlayerData;
+import net.Indyuce.mmocore.api.quest.trigger.Trigger;
 import net.Indyuce.mmocore.experience.EXPSource;
 import net.Indyuce.mmocore.experience.Profession;
 import net.minecraft.network.protocol.game.PacketPlayOutAnimation;
@@ -82,46 +83,23 @@ public class ResourceListener implements org.bukkit.event.Listener {
                     }
 
                     if(event.hasItem()) {
-                        if(plugin.getItemGroups().getItemGroups().containsKey(resource.getJob())) {
-                            if (!plugin.getItemGroups().getItemGroups().get(JobTypes.getMatching(profession.getName())).get(resource.getLevel()).contains(event.getItem())) {
-                                player.sendMessage(TWUtils.formattedColors("&cIncorrect item used to collect this resource!"));
-                                event.setCancelled(true);
-                                return;
+                        if(plugin.getItemGroups().getItemGroups().containsKey(resource.getLevel())) {
+                            for(JobTypes job : plugin.getItemGroups().getItemGroups().get(resource.getLevel()).keySet()) {
+                                if(job == resource.getJob()) {
+                                    if (!plugin.getItemGroups().getItemGroups().get(resource.getLevel()).get(job).contains(event.getItem())) {
+                                        player.sendMessage(TWUtils.formattedColors("&cIncorrect item used to collect this resource!"));
+                                        event.setCancelled(true);
+                                        return;
+                                    }
+                                }
                             }
                         }
                     }
 
-                    if (!(interactedPlayers.contains(player.getUniqueId()))) interactedPlayers.add(player.getUniqueId());
+                    if(!(interactedPlayers.contains(player.getUniqueId()))) interactedPlayers.add(player.getUniqueId());
 
                     decreaseHealth(resource, event.getAction(), player);
 
-                    ItemStack item = null;
-                    if (event.getAction().equals(Action.LEFT_CLICK_BLOCK)) {
-                        if(resource.getLeftClick() != null) {
-                            resource.setLeftClick(resource.getLeftClick());
-                            item = resource.getLeftClick();
-                        }
-                    } else {
-                        if(event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
-                            if (resource.getRightClick() != null) {
-                                resource.setRightClick(resource.getRightClick());
-                                item = resource.getRightClick();
-                            }
-                        }
-                    }
-                    if (item != null) {
-                        if (player.getInventory().firstEmpty() == -1) {
-                            player.getLocation().getWorld().dropItemNaturally(player.getLocation(), item);
-                        } else {
-                            player.getInventory().addItem(item);
-                        }
-
-                    }
-
-                    if (resource.getXp() != 0) {
-                        playerData.getCollectionSkills().giveExperience(profession, resource.getXp(), EXPSource.OTHER);
-                        player.sendMessage(TWUtils.formattedColors("&aYou have been given " + resource.getXp() + " in " + profession.getName()));
-                    }
                     event.setCancelled(true);
                 }
             }
@@ -199,6 +177,9 @@ public class ResourceListener implements org.bukkit.event.Listener {
                     resource.getHologram().despawn(player);
 
                     resource.getPlayerRespawnTime().put(player.getUniqueId(), respawnTime);
+
+                    collectResource(resource, player, action);
+
                     startTimer(resource, player, resource.getPlayerRespawnTime().get(player.getUniqueId()));
                     cancel();
                 }
@@ -238,9 +219,9 @@ public class ResourceListener implements org.bukkit.event.Listener {
 
             @Override
             public void run() {
-                if (Bukkit.getPlayer(player.getUniqueId()) != null) {
+                if(Bukkit.getPlayer(player.getUniqueId()) != null) {
 
-                    if (time == (startTime - 1)) {
+                    if(time == (startTime - 1)) {
                         resourceManager.despawnResource(resource, player);
                         replaceBlocks(resource, player);
                     }
@@ -269,6 +250,45 @@ public class ResourceListener implements org.bukkit.event.Listener {
 
     public List<UUID> getInteractedPlayers() {
         return interactedPlayers;
+    }
+
+    private void collectResource(ThalwyrnResource resource, Player player, Action action) {
+        ItemStack item = null;
+        PlayerData playerData = PlayerData.get(player.getUniqueId());
+        Profession profession = TWUtils.convertToMMOCoreJob(resource.getJob().getJobName());
+
+        if(action.equals(Action.LEFT_CLICK_BLOCK)) {
+            if(resource.getLeftClick() != null) {
+                resource.setLeftClick(resource.getLeftClick());
+                item = resource.getLeftClick();
+            }
+        } else {
+            if(action.equals(Action.RIGHT_CLICK_BLOCK)) {
+                if (resource.getRightClick() != null) {
+                    resource.setRightClick(resource.getRightClick());
+                    item = resource.getRightClick();
+                }
+            }
+        }
+        if(item != null) {
+            if (player.getInventory().firstEmpty() == -1) {
+                player.getLocation().getWorld().dropItemNaturally(player.getLocation(), item);
+            } else {
+                player.getInventory().addItem(item);
+            }
+
+        }
+
+        if(resource.getXp() != 0) {
+            playerData.getCollectionSkills().giveExperience(profession, resource.getXp(), EXPSource.OTHER);
+            player.sendMessage(TWUtils.formattedColors("&aYou have been given " + resource.getXp() + " in " + profession.getName()));
+        }
+
+        if(!resource.getTriggers().isEmpty()) {
+            for(Trigger trigger : resource.getTriggers()) {
+                trigger.apply(playerData);
+            }
+        }
     }
 
 }

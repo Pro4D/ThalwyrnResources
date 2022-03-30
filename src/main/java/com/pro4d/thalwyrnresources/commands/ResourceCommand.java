@@ -11,8 +11,6 @@ import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.managers.RegionManager;
-import net.Indyuce.mmocore.api.player.PlayerData;
-import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -47,6 +45,7 @@ public class ResourceCommand implements CommandExecutor {
         if(args[0].equals("reload") && args.length == 1) {
             resourceManager.cleanup();
             resourceManager.validateConfig();
+            plugin.getItemGroups().validateItemGroupConfig();
             sender.sendMessage(TWMessages.reloadMessage());
             return true;
         }
@@ -57,133 +56,147 @@ public class ResourceCommand implements CommandExecutor {
         }
         Player player = (Player) sender;
 
+        //          0     1             2              3
+        //resource edit <id> <value (ie. job/xp)> new value
+
+        //          0      1     2      3            4
+        //resource place level  job <value1> <OPTIONAL:value2>
+
+        //           0      1
+        //resource delete <id>
+
+        //          0      1
+        //resource info <id>
+
+        //            0    1      2        3
+        //resource region <id> <count> <distance>
+
+        //           0     1      2
+        //resource group <job> <level>
+
+        //          0     1
+        //resource copy  <id>
+
+        //invert arg length check
         switch (args[0]) {
 
             case "place":
                 //create
-                if(TWUtils.isInt(args[1])) {
+                if(args.length >= 4) {
+                    if (!TWUtils.isInt(args[1])) {
+                        player.sendMessage(TWMessages.invalidNumber().replace("%value_entered%", args[1]));
+                        return false;
+                    }
+                    if (!TWUtils.isJobType(args[2])) {
+                        player.sendMessage(TWMessages.notAJob());
+                        return false;
+                    }
                     int level = Integer.parseInt(args[1]);
-
-                    if(resourceManager.getEnumJobNames().contains(args[2].toUpperCase())) {
-
-                        for(String name : resourceManager.getEnumJobNames()) {
-
-                            if(name.equalsIgnoreCase(args[2])) {
-                                JobTypes job = JobTypes.getMatching(name);
-                                switch (job) {
-                                    case WOODCUTTING:
-                                        if(plugin.getConstructionManager().isSchematic(args[3])) {
-                                            if(plugin.getConstructionManager().isSchematic(args[4])) {
-                                                ThalwyrnResource resource = resourceManager.createResource(level, job, player.getLocation(), args[3], args[4], -4469);
-                                                player.sendMessage(TWMessages.createResource().replace("%id%", String.valueOf(resource.getId())));
-                                                return true;
-                                            }
-                                        }
-
-                                }
-                            }
+                    JobTypes job = JobTypes.getMatching(args[2]);
+                    switch (job) {
+                        case WOODCUTTING:
+                            if (!plugin.getConstructionManager().isSchematic(args[3])) {
+                            player.sendMessage(TWMessages.invalidSchematic().replace("%schematic_name%", args[3]));
+                            return false;
                         }
+                            if (!plugin.getConstructionManager().isSchematic(args[4])) {
+                            player.sendMessage(TWMessages.invalidSchematic().replace("%schematic_name%", args[4]));
+                            return false;
+                        }
+
+                            ThalwyrnResource resource = resourceManager.createResource(level, job, player.getLocation(), args[3], args[4], -4469);
+                            player.sendMessage(TWMessages.createResource().replace("%id%", String.valueOf(resource.getId())));
+                            return true;
                     }
                 }
                 return true;
 
             case "delete":
                 if(args.length == 2) {
-                    if (TWUtils.isInt(args[1])) {
-                        if (resourceManager.isAResource(Integer.parseInt(args[1]))) {
-                            //delete
-                            ThalwyrnResource resource = resourceManager.getResource(Integer.parseInt(args[1]));
-                            resource.delete();
-                            ThalwyrnResources.getResourceManager().delete(resource);
-                            player.sendMessage(TWMessages.deletedResource().replace("%id%", String.valueOf(resource.getId())));
-                        } else {
-                            player.sendMessage(TWMessages.notAResource());
-                        }
+                    if (!TWUtils.isInt(args[1])) {
+                        player.sendMessage(TWMessages.notAResource().replace("%id%", args[1]));
+                        return false;
                     }
+                    if (!resourceManager.isAResource(Integer.parseInt(args[1]))) {
+                        player.sendMessage(TWMessages.notAResource().replace("%id%", args[1]));
+                        return false;
+                    }
+                    //delete
+                    ThalwyrnResource resource = resourceManager.getResource(Integer.parseInt(args[1]));
+                    resource.delete();
+                    ThalwyrnResources.getResourceManager().delete(resource);
+                    player.sendMessage(TWMessages.deletedResource().replace("%id%", String.valueOf(resource.getId())));
                 }
                 return true;
 
             case "edit":
-                if(TWUtils.isInt(args[1])) {
-                    if (resourceManager.isAResource(Integer.parseInt(args[1]))) {
-                        if (args.length >= 3) {
-                            ThalwyrnResource resource = resourceManager.getResource(Integer.parseInt(args[1]));
-                            switch (args[2]) {
-
-                                case "xp":
-                                    if (TWUtils.isInt(args[3])) {
-                                        resource.setXp(Integer.parseInt(args[3]));
-                                        player.sendMessage(TWMessages.editedResource().replace("%edited_value%", "xp").replace("%new_value%", args[3]).replace("%id%", String.valueOf(resource.getId())));
-                                    } else {
-                                        player.sendMessage(TWMessages.invalidNumber().replace("%value_entered%", args[3]));
-                                    }
-                                    return true;
-
-                                case "job":
-                                    if (resourceManager.getEnumJobNames().contains(args[3].toLowerCase())) {
-                                        for (String name : resourceManager.getEnumJobNames()) {
-                                            if (name.equalsIgnoreCase(TWUtils.convertToMMOCoreJob(args[3]).getName())) {
-                                                JobTypes job = JobTypes.getMatching(name);
-                                                resource.setJob(job);
-                                                player.sendMessage(TWMessages.editedResource().replace("%edited_value%", "job").replace("%new_value%", job.getJobName()).replace("%id%", String.valueOf(resource.getId())));
-                                                return true;
-                                            }
-                                        }
-                                    }
-                                    player.sendMessage("Not a job");
-                                    return true;
-
-                                case "left-click":
-                                    if (player.getInventory().getItemInMainHand().getType() != Material.AIR) {
-                                        ItemStack item = player.getInventory().getItemInMainHand();
-                                        resource.setLeftClick(item);
-
-                                        String name;
-                                        if(item.hasItemMeta()) {
-                                            if(item.getItemMeta().hasDisplayName()) {
-                                                name = item.getItemMeta().getDisplayName();
-                                            } else name = WordUtils.capitalizeFully(item.getType().name());
-                                        } else name = WordUtils.capitalizeFully(item.getType().name());
-
-                                        player.sendMessage(TWMessages.editedResource().replace("%edited_value%", "Left Click Item").replace("%new_value%", name).replace("%id%", String.valueOf(resource.getId())));
-                                    } else player.sendMessage("Hand is empty!");
-                                    return true;
-
-                                case "right-click":
-                                    if (player.getInventory().getItemInMainHand().getType() != Material.AIR) {
-                                        ItemStack item = player.getInventory().getItemInMainHand();
-                                        resource.setRightClick(item);
-
-                                        String name;
-                                        if(item.hasItemMeta()) {
-                                            if(item.getItemMeta().hasDisplayName()) {
-                                                name = item.getItemMeta().getDisplayName();
-                                            } else name = WordUtils.capitalizeFully(item.getType().name());
-                                        } else name = WordUtils.capitalizeFully(item.getType().name());
-
-                                        player.sendMessage(TWMessages.editedResource().replace("%edited_value%", "Right Click Item").replace("%new_value%", name).replace("%id%", String.valueOf(resource.getId())));
-                                    } else player.sendMessage("Hand is empty!");
-                                    return true;
-
-                                case "level":
-                                    if (TWUtils.isInt(args[3])) {
-                                        resource.setLevel(Integer.parseInt(args[3]));
-                                        player.sendMessage(TWMessages.editedResource().replace("%edited_value%", "level").replace("%new_value%", args[3]).replace("%id%", String.valueOf(resource.getId())));
-                                        return true;
-                                    } else player.sendMessage(TWMessages.invalidNumber().replace("%value_entered%", args[3]));
-
-//                                case "health":
-//                                    if(ThalwyrnResourcesUtils.isInt(args[3])) {
-//                                        resource.setHealth(Integer.parseInt(args[3]));
-//                                        player.sendMessage("The health for resource: " + resource.getInternalName() + " has been set to: " + args[3]);
-//                                        return true;
-//                                    } else {player.sendMessage(ThalwyrnResourcesUtils.notAInt());}
-
+                if(args.length >= 3) {
+                    if (!TWUtils.isInt(args[1])) {
+                        player.sendMessage(TWMessages.invalidNumber().replace("%value_entered%", args[1]));
+                        return false;
+                    }
+                    if (!resourceManager.isAResource(Integer.parseInt(args[1]))) {
+                        player.sendMessage(TWMessages.notAResource().replace("%id", args[1]));
+                        return false;
+                    }
+                    if (args.length < 3) {
+                        player.sendMessage(TWMessages.invalidCommandUsage());
+                        return false;
+                    }
+                                
+                    ThalwyrnResource resource = resourceManager.getResource(Integer.parseInt(args[1]));
+                    switch (args[2]) {
+                        case "xp":
+                            if (!TWUtils.isInt(args[3])) {
+                                player.sendMessage(TWMessages.invalidNumber().replace("%value_entered%", args[3]));
+                                return false;
                             }
-                        } else player.sendMessage(TWMessages.invalidCommandUsage());
-                    } else {
-                        player.sendMessage(TWMessages.notAResource());
+                            resource.setXp(Integer.parseInt(args[3]));
+                            player.sendMessage(TWMessages.editedResource().replace("%edited_value%", "xp").replace("%new_value%", args[3]).replace("%id%", String.valueOf(resource.getId())));
                         return true;
+
+                        case "job":
+                            if (!TWUtils.isJobType(args[3])) {
+                                player.sendMessage(TWMessages.notAJob()); //temp
+                                return true;
+                            }
+
+                            JobTypes job = JobTypes.getMatching(args[3]);
+                            resource.setJob(job);
+                            player.sendMessage(TWMessages.editedResource().replace("%edited_value%", "job").replace("%new_value%", job.getJobName()).replace("%id%", String.valueOf(resource.getId())));
+                        return true;
+
+                        case "left-click":
+                            if (player.getInventory().getItemInMainHand().getType() == Material.AIR) {
+                                player.sendMessage(TWMessages.handEmpty());
+                                return false;
+                            }
+                            ItemStack leftClick = player.getInventory().getItemInMainHand();
+                            resource.setLeftClick(leftClick);
+                                
+                            String leftClickName = TWUtils.itemStackName(leftClick);
+                            player.sendMessage(TWMessages.editedResource().replace("%edited_value%", "Left Click Item").replace("%new_value%", leftClickName).replace("%id%", String.valueOf(resource.getId())));
+                        return true;
+
+                        case "right-click":
+                            if (player.getInventory().getItemInMainHand().getType() == Material.AIR) {
+                                player.sendMessage(TWMessages.handEmpty());
+                                return false;
+                            }
+                            ItemStack rightClick = player.getInventory().getItemInMainHand();
+                            resource.setRightClick(rightClick);
+                            String rightClickName = TWUtils.itemStackName(rightClick);
+                            player.sendMessage(TWMessages.editedResource().replace("%edited_value%", "Right Click Item").replace("%new_value%", rightClickName).replace("%id%", String.valueOf(resource.getId())));
+                        return true;
+
+                        case "level":
+                            if (!TWUtils.isInt(args[3])) {
+                                player.sendMessage(TWMessages.invalidNumber().replace("%value_entered%", args[3]));
+                                return false;
+                            }
+                            resource.setLevel(Integer.parseInt(args[3]));
+                            player.sendMessage(TWMessages.editedResource().replace("%edited_value%", "level").replace("%new_value%", args[3]).replace("%id%", String.valueOf(resource.getId())));
+                            return true;
                     }
                 }
                 return true;
@@ -203,16 +216,18 @@ public class ResourceCommand implements CommandExecutor {
 
             case "copy":
                 if(args.length == 2) {
-                    if (TWUtils.isInt(args[1])) {
-                        if (resourceManager.isAResource(Integer.parseInt(args[1]))) {
-
-                            ThalwyrnResource copyFrom = resourceManager.getResource(Integer.parseInt(args[1]));
-                            //ThalwyrnResource copied = resourceManager.createResource(copyFrom.getLevel(), copyFrom.getJob(), player.getLocation(), copyFrom.getType(), copyFrom.getExtra(), -4469);
-                            ThalwyrnResource copied =  resourceManager.copyResource(copyFrom, player.getLocation());
-                            resourceManager.spawnResource(copied, player.getLocation());
-                            player.sendMessage("Resource: " + resourceManager.getResource(Integer.parseInt(args[1])).getId() + " has been copied. New ID is: " + copied.getId());
-                        } else player.sendMessage(TWMessages.notAResource());
+                    if (!TWUtils.isInt(args[1])) {
+                        player.sendMessage(TWMessages.invalidNumber().replace("%value_entered%", args[1]));
+                        return false;
                     }
+                    if (!resourceManager.isAResource(Integer.parseInt(args[1]))) {
+                        player.sendMessage(TWMessages.notAResource().replace("%id%", args[1]));
+                        return false;
+                    }
+                    ThalwyrnResource copyFrom = resourceManager.getResource(Integer.parseInt(args[1]));
+                    ThalwyrnResource copied =  resourceManager.copyResource(copyFrom, player.getLocation());
+                    resourceManager.spawnResource(copied, player.getLocation());
+                    player.sendMessage("Resource: " + resourceManager.getResource(Integer.parseInt(args[1])).getId() + " has been copied. New ID is: " + copied.getId());
                 }
                 return true;
 
@@ -341,45 +356,35 @@ public class ResourceCommand implements CommandExecutor {
 
             //resource group <job> <level>
             case "group":
-                if(args.length != 3) {
-                    player.sendMessage(TWMessages.invalidCommandUsage());
-                    return false;
-                }
-                if(!TWUtils.isInt(args[2])) {
-                    player.sendMessage(TWMessages.invalidNumber());
-                    return false;
-                }
-                if(!resourceManager.getEnumJobNames().contains(args[1])) {
-                    player.sendMessage(TWUtils.formattedColors("&cNo valid job with the name &r%job%").replace("%job%", args[1]));
-                    return false;
-                }
-                if(player.getInventory().getItemInMainHand().getType() == Material.AIR) {
-                    player.sendMessage(TWUtils.formattedColors("&cHand is empty!"));
-                    return false;
-                }
-
-                ItemStack item = player.getInventory().getItemInMainHand();
-                JobTypes job = JobTypes.getMatching(args[1]);
-                plugin.getItemGroups().addItemToGroup(job, Integer.parseInt(args[2]), item);
-
-                //FINISH BELOW
-                for(JobTypes jobTypes : plugin.getItemGroups().getItemGroups().keySet()) {
-                    player.sendMessage("J: " + jobTypes.getJobName());
-                    for(Integer integer : plugin.getItemGroups().getItemGroups().get(jobTypes).keySet()) {
-                        player.sendMessage("L: " + integer + " ,J-" + jobTypes.getJobName());
-                        for(ItemStack itemStack : plugin.getItemGroups().getItemGroups().get(jobTypes).get(integer)) {
-                            player.sendMessage("I: " + itemStack.getType() + " ,L- " + integer + ", J- " + jobTypes.getJobName());
-                        }
+                if(args.length == 3) {
+                    if (!TWUtils.isInt(args[2])) {
+                        player.sendMessage(TWMessages.invalidNumber().replace("%value_entered%", args[2]));
+                        return false;
                     }
+                    if (!TWUtils.isJobType(args[1])) {
+                        player.sendMessage(TWMessages.notAJob());
+                        return false;
+                    }
+                    if (player.getInventory().getItemInMainHand().getType() == Material.AIR) {
+                        player.sendMessage(TWMessages.handEmpty());
+                        return false;
+                    }
+
+                    ItemStack item = player.getInventory().getItemInMainHand();
+                    JobTypes job = JobTypes.getMatching(args[1]);
+                    int level = Integer.parseInt(args[2]);
+                    plugin.getItemGroups().addItemToGroup(job, level, item, player);
                 }
                 return true;
 
             case "help":
-                player.sendMessage(TWUtils.formattedColors("&e&l&m---------------&r Help &e&l&m---------------"));
-                for(TWCommands commands : TWCommands.values()) {
-                    player.sendMessage(TWUtils.formattedColors("&6/resource " + commands.getName() + ": &r" + commands.getDescription()));
+                if(args.length == 1) {
+                    player.sendMessage(TWUtils.formattedColors("&e&l&m---------------&r Help &e&l&m---------------"));
+                    for (TWCommands commands : TWCommands.values()) {
+                        player.sendMessage(TWUtils.formattedColors("&6/resource " + commands.getName() + ": &r" + commands.getDescription()));
+                    }
+                    player.sendMessage(TWUtils.formattedColors("&e&l&m-----------------------------------"));
                 }
-                player.sendMessage(TWUtils.formattedColors("&e&l&m-----------------------------------"));
                 return true;
         }
         return false;

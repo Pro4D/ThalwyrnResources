@@ -34,7 +34,14 @@ public class TWMessages {
         return TWUtils.formattedColors("&7 &r' %value_entered% '&7 is not a valid number!");
     }
 
+    public static String addedItemToGroup() {return TWUtils.formattedColors("&aAdded &r%item_name% &ato &r%job% &aitem group with level &r%lvl%");}
 
+    public static String handEmpty() {return TWUtils.formattedColors("&cYour hand is empty!");}
 
+    public static String cantAddItemToGroup() {return TWUtils.formattedColors("&cThis item is already present in this item group!");}
+
+    public static String notAJob() {return TWUtils.formattedColors("&cNot a valid job!");}
+
+    public static String invalidSchematic() {return TWUtils.formattedColors("&c &r' %schematic_name% '&c is not a valid schematic! Make sure its in the WorldEdit folder.");}
 
 }

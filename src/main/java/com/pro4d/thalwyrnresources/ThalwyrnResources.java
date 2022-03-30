@@ -84,11 +84,9 @@ public final class ThalwyrnResources extends JavaPlugin {
             @Override
             public void run() {
                 resourceManager.validateConfig();
+                getItemGroups().validateItemGroupConfig();
             }
         }.runTaskLater(this, 1);
-
-
-
 
     }
 

@@ -1,5 +1,7 @@
 package com.pro4d.thalwyrnresources.enums;
 
+import org.apache.commons.lang.WordUtils;
+
 public enum JobTypes {
 
 //    ALCHEMY,
@@ -10,8 +12,9 @@ public enum JobTypes {
 //    SMELTING,
 //    SMITHING,
     WOODCUTTING;
+
     public String getJobName() {
-        return this.toString();
+        return WordUtils.capitalizeFully(this.toString());
     }
 
     public static JobTypes getMatching(String s) {

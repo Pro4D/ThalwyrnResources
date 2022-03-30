@@ -6,7 +6,7 @@
 
     <groupId>com.pro4d</groupId>
     <artifactId>ThalwyrnResources</artifactId>
-    <version>3.0.0</version>
+    <version>3.2.5</version>
     <packaging>jar</packaging>
 
     <name>ThalwyrnResources</name>
@@ -122,6 +122,11 @@
             <artifactId>worldguard-bukkit</artifactId>
             <version>7.0.6</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>31.1-jre</version>
         </dependency>
     </dependencies>
 </project>

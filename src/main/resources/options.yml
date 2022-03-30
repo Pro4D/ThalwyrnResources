@@ -1,6 +1,6 @@
 respawn-time: 120
 
-# Resource health corresponding to level
+# Resource health corresponding to level (in seconds)
 1: 5
 2: 10
 3: 15

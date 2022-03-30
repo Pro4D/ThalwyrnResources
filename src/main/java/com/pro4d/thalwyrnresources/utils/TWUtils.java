@@ -1,11 +1,14 @@
 package com.pro4d.thalwyrnresources.utils;
 
+import com.pro4d.thalwyrnresources.enums.JobTypes;
 import com.sk89q.worldedit.math.Vector3;
 import net.Indyuce.mmocore.MMOCore;
 import net.Indyuce.mmocore.experience.Profession;
+import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 import java.util.logging.Level;
@@ -33,7 +36,7 @@ public class TWUtils {
             text = text.replace("_", " ");
             return text;
         }
-        return text;
+        return WordUtils.capitalizeFully(text);
     }
 
 
@@ -63,9 +66,27 @@ public class TWUtils {
         }
         return null;
     }
+    //jobs
+
+    public static boolean isJobType(String s) {
+        for(JobTypes jobTypes : JobTypes.values()) {
+            if(jobTypes.getJobName().equalsIgnoreCase(s)) return true;
+        }
+        return false;
+    }
 
     public static int randomInteger(int min, int max) {
         return (int)Math.floor(Math.random()*(max-min+1) + min);
+    }
+
+    public static String itemStackName(ItemStack item) {
+        String name;
+        if(item.hasItemMeta()) {
+            if(item.getItemMeta().hasDisplayName()) {
+                name = item.getItemMeta().getDisplayName();
+            } else name = formatMessage(item.getType().name());
+        } else name = formatMessage(item.getType().name());
+        return name;
     }
 
 }

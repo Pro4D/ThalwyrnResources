@@ -36,11 +36,13 @@ public class TabCompletor implements TabCompleter {
                 tabList.add("place");
                 tabList.add("copy");
                 tabList.add("help");
+                tabList.add("group");
                 if(plugin.isWorldGuardEnabled()) {
                     tabList.add("region-place");
                 }
 
                 break;
+
             case 2:
                 if(strings[0].equals("delete") || strings[0].equals("edit") || strings[0].equals("copy")) {
                     tabList.add("<id>");
@@ -51,11 +53,17 @@ public class TabCompletor implements TabCompleter {
                 if(strings[0].equals("region-place")) {
                     tabList.add("<region-name>");
                 }
+                if(strings[0].equals("group")) {
+                    for(JobTypes jobTypes : JobTypes.values()) {
+                        tabList.add(jobTypes.getJobName());
+                    }
+                }
                 break;
+
             case 3:
                 if(strings[0].equals("place")) {
                     for(JobTypes jobTypes : JobTypes.values()) {
-                       tabList.add((jobTypes.getJobName().toLowerCase()));
+                       tabList.add((jobTypes.getJobName()));
                     }
                 }
                 if(strings[0].equals("edit")) {
@@ -68,7 +76,11 @@ public class TabCompletor implements TabCompleter {
                 if(strings[0].equals("region-place")) {
                     tabList.add("<id>");
                 }
+                if(strings[0].equals("group")) {
+                    tabList.add("<level>");
+                }
                 break;
+
             case 4:
                 switch (strings[0]) {
                     case "edit":
@@ -79,7 +91,7 @@ public class TabCompletor implements TabCompleter {
                                 break;
                             case "job":
                                 for(JobTypes jobTypes : JobTypes.values()) {
-                                    tabList.add((jobTypes.getJobName().toLowerCase()));
+                                    tabList.add((jobTypes.getJobName()));
                                 }
                                 break;
                         }

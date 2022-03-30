@@ -9,8 +9,8 @@ import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.math.Vector3;
 import com.sk89q.worldedit.regions.Region;
-import net.Indyuce.mmocore.api.quest.trigger.CommandTrigger;
-import net.Indyuce.mmocore.api.quest.trigger.Trigger;
+import io.lumine.mythic.lib.api.MMOLineConfig;
+import net.Indyuce.mmocore.MMOCore;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -23,8 +23,8 @@ import org.bukkit.util.Vector;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
 
 public class ResourceManager {
 
@@ -267,6 +267,7 @@ public class ResourceManager {
         allResources.remove(resource);
     }
 
+    //revamp to loop through keys
     @SuppressWarnings("ConstantConditions")
     public void validateConfig() {
         if(!config.isConfigurationSection(configPath)) return;
@@ -318,7 +319,9 @@ public class ResourceManager {
 
             JobTypes job = null;
             if(config.contains(path + ".jobs")) {
-                job = JobTypes.getMatching(config.getString(path + ".jobs"));
+                if(TWUtils.isJobType(config.getString(path + ".jobs"))) {
+                    job = JobTypes.getMatching(config.getString(path + ".jobs"));
+                }
             }
 
             String type = null;
@@ -341,6 +344,21 @@ public class ResourceManager {
                     if(config.getInt(path + ".xp") != 0) {
                         int xp = config.getInt(path + ".xp");
                         resource.setXp(xp);
+                    }
+                }
+            }
+
+            if(config.contains(path + ".triggers")) {
+                if(config.isList(path + ".triggers")) {
+                    List<String> triggerList = config.getStringList(path + ".triggers");
+                    for(String trigger : triggerList) {
+                        try {
+                            resource.getTriggers().add(MMOCore.plugin.loadManager.loadTrigger(new MMOLineConfig(trigger)));
+                        } catch (IllegalArgumentException exception) {
+                            TWUtils.log(Level.WARNING,
+                                    "Could not load trigger '" + trigger + "' from resource: " + id);
+                        }
+
                     }
                 }
             }
